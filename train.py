@@ -67,7 +67,7 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Dataset settings.
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/train',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
 flags.DEFINE_string('labels_path',
@@ -81,10 +81,15 @@ flags.DEFINE_integer('how_many_training_epochs', 100,
 
 flags.DEFINE_integer('batch_size', 64, 'batch size')
 flags.DEFINE_integer('height', 224, 'height')
-flags.DEFINE_integer('weight', 224, 'weight')
+flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
-flags.DEFINE_integer('validation_percentage', 5,
-                     'What percentage of wavs to use as a validation set.')
+# flags.DEFINE_integer('validation_percentage', 5,
+#                      'What percentage of wavs to use as a validation set.')
+flags.DEFINE_string('checkpoint_name', 'resnet_v2.ckpt', 'checkpoint_name')
+
+
+# temporary constant
+PCAM_DATA_SIZE = 220025
 
 
 def main(unused_argv):
@@ -99,7 +104,7 @@ def main(unused_argv):
     with tf.Graph().as_default() as graph:
         global_step = tf.train.get_or_create_global_step()
 
-        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.weight, 3])
+        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool)
         dropout_keep_prob = tf.placeholder(tf.float32, [])
@@ -178,19 +183,9 @@ def main(unused_argv):
         ###############
         # Prepare data
         ###############
-        # read labels from .cvs
-        image_to_label = {}
-        with open(FLAGS.labels_path, 'r') as reader:
-            for line in reader:
-                fields = line.strip().split(',')
-                image_to_label[fields[0]] = fields[1]
-
-        # TODO: big data to control OOM
-        # Place data loading and preprocessing on the cpu
-        prepared_data = data.Data(FLAGS.dataset_dir, labels, image_to_label, FLAGS.validation_percentage)
-        tr_dataset = data.Dataset(prepared_data, FLAGS.height, FLAGS.weight, FLAGS.batch_size)
-
-        # create an reinitializable iterator given the dataset structure
+        filenames = tf.placeholder(tf.string, shape=[])
+        tr_dataset = data.Dataset(filenames, FLAGS.batch_size, FLAGS.how_many_training_epochs,
+                                  FLAGS.height, FLAGS.width)
         iterator = tr_dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
@@ -207,13 +202,14 @@ def main(unused_argv):
 
             start_epoch = 0
             # Get the number of training/validation steps per epoch
-            tr_batches = int(prepared_data.get_size('training') / FLAGS.batch_size)
-            if prepared_data.get_size('training') % FLAGS.batch_size > 0:
+            tr_batches = int(PCAM_DATA_SIZE / FLAGS.batch_size)
+            if PCAM_DATA_SIZE % FLAGS.batch_size > 0:
                 tr_batches += 1
             # v_batches = int(dataset.data_size() / FLAGS.batch_size)
             # if val_data.data_size() % FLAGS.batch_size > 0:
             #     v_batches += 1
 
+            training_filenames = os.path.join(FLAGS.dataset_dir, 'train.record')
             ############################
             # Training loop.
             ############################
@@ -222,8 +218,7 @@ def main(unused_argv):
                 print(" Epoch {} ".format(training_epoch))
                 print("------------------------------------")
 
-                # dataset.shuffle_all()
-                sess.run(iterator.initializer)
+                sess.run(iterator.initializer, feed_dict={filenames: training_filenames})
                 for step in range(tr_batches):
                     # Pull the image batch we'll use for training.
                     # train_batch_xs, train_batch_ys = dataset.next_batch(FLAGS.batch_size)
@@ -242,27 +237,30 @@ def main(unused_argv):
                     #     cv2.destroyAllWindows()
 
                     # # Run the graph with this batch of training data.
-                    # lr, train_summary, train_accuracy, train_loss, _ = \
-                    #     sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
-                    #              feed_dict={X: train_batch_xs,
-                    #                         ground_truth: train_batch_ys,
-                    #                         learning_rate:FLAGS.learning_rate,
-                    #                         is_training: True,
-                    #                         dropout_keep_prob: 0.7})
-                    #
-                    # train_writer.add_summary(train_summary)
-                    # tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
-                    #                 (training_epoch, step, lr, train_accuracy * 100, train_loss))
+                    lr, train_summary, train_accuracy, train_loss, _ = \
+                        sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
+                                 feed_dict={X: train_batch_xs,
+                                            ground_truth: train_batch_ys,
+                                            learning_rate:FLAGS.learning_rate,
+                                            is_training: True,
+                                            dropout_keep_prob: 0.7})
+
+                    train_writer.add_summary(train_summary)
+                    tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
+                                    (training_epoch, step, lr, train_accuracy * 100, train_loss))
 
                 ###################################################
                 # TODO: Validate the model on the validation set
                 ###################################################
+                # sess.run(iterator.initializer, feed_dict={filenames: validation_filenames})
+                # for step in range(val_batches):
 
-                # # Save the model checkpoint periodically.
-                # if (training_epoch <= FLAGS.how_many_training_epochs-1):
-                #     checkpoint_path = os.path.join(FLAGS.train_logdir, 'gvcnn.ckpt')
-                #     tf.logging.info('Saving to "%s-%d"', checkpoint_path, training_epoch)
-                #     saver.save(sess, checkpoint_path, global_step=training_epoch)
+
+                # Save the model checkpoint periodically.
+                if (training_epoch <= FLAGS.how_many_training_epochs-1):
+                    checkpoint_path = os.path.join(FLAGS.train_logdir, FLAGS.checkpoint_name)
+                    tf.logging.info('Saving to "%s-%d"', checkpoint_path, training_epoch)
+                    saver.save(sess, checkpoint_path, global_step=training_epoch)
 
 
 
