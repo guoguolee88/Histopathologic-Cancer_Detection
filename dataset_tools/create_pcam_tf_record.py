@@ -14,7 +14,6 @@ import random
 
 import PIL.Image
 import tensorflow as tf
-from lxml import etree
 
 from dataset_tools import dataset_util
 
