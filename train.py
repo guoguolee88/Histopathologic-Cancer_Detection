@@ -185,6 +185,7 @@ def main(unused_argv):
                 fields = line.strip().split(',')
                 image_to_label[fields[0]] = fields[1]
 
+        # TODO: big data to control OOM
         # Place data loading and preprocessing on the cpu
         prepared_data = data.Data(FLAGS.dataset_dir, labels, image_to_label, FLAGS.validation_percentage)
         tr_dataset = data.Dataset(prepared_data, FLAGS.height, FLAGS.weight, FLAGS.batch_size)
@@ -229,16 +230,16 @@ def main(unused_argv):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
 
                     # # Verify image
-                    n_batch = train_batch_xs.shape[0]
-                    for i in range(n_batch):
-                        img = train_batch_xs[i]
-                        # scipy.misc.toimage(img).show()
-                        # Or
-                        img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                        cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
-                        # cv2.imshow(str(train_batch_ys[idx]), img)
-                        cv2.waitKey(100)
-                        cv2.destroyAllWindows()
+                    # n_batch = train_batch_xs.shape[0]
+                    # for i in range(n_batch):
+                    #     img = train_batch_xs[i]
+                    #     # scipy.misc.toimage(img).show()
+                    #     # Or
+                    #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                    #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
+                    #     # cv2.imshow(str(train_batch_ys[idx]), img)
+                    #     cv2.waitKey(100)
+                    #     cv2.destroyAllWindows()
 
                     # # Run the graph with this batch of training data.
                     # lr, train_summary, train_accuracy, train_loss, _ = \

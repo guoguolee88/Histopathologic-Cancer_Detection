@@ -88,8 +88,8 @@ class Dataset(object):
             labels.append(label_to_index[img['label']])
 
         # # convert lists to TF tensor
-        # image_paths = convert_to_tensor(image_paths, dtype=dtypes.string)
-        # labels = convert_to_tensor(labels, dtype=dtypes.float64)
+        images = tf.convert_to_tensor(images, dtype=tf.string)
+        labels = tf.convert_to_tensor(labels, dtype=tf.float64)
 
         return images, labels
 
