@@ -6,6 +6,7 @@ import tensorflow as tf
 
 import os
 import csv
+import cv2
 import numpy as np
 
 from slim.nets import resnet_v2
@@ -228,20 +229,16 @@ def main(unused_argv):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
 
                     # # Verify image
-                    # batch_x = np.squeeze(train_batch_xs, axis=0)
-                    # n_batch = batch_x.shape[0]
-                    # n_view = batch_x.shape[1]
-                    # for i in range(n_batch):
-                    #     for j in range(n_view):
-                    #         img = batch_x[i][j]
-                    #         # scipy.misc.toimage(img).show()
-                    #         # Or
-                    #         img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                    #         cv2.imwrite('/home/ace19/Pictures/' + str(i) +
-                    #                     '_' + str(j) + '.png', img)
-                    #         # cv2.imshow(str(train_batch_ys[idx]), img)
-                    #         cv2.waitKey(100)
-                    #         cv2.destroyAllWindows()
+                    n_batch = train_batch_xs.shape[0]
+                    for i in range(n_batch):
+                        img = train_batch_xs[i]
+                        # scipy.misc.toimage(img).show()
+                        # Or
+                        img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                        cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
+                        # cv2.imshow(str(train_batch_ys[idx]), img)
+                        cv2.waitKey(100)
+                        cv2.destroyAllWindows()
 
                     # # Run the graph with this batch of training data.
                     # lr, train_summary, train_accuracy, train_loss, _ = \

@@ -6,6 +6,9 @@ import tensorflow as tf
 
 import os
 import random
+import numpy as np
+
+from PIL import Image
 
 
 class Data(object):
@@ -93,8 +96,7 @@ class Dataset(object):
 
     def _parse_func(self, filename, label):
         image_string = tf.read_file(filename)
-        # image_decoded = tf.image.decode_png(image_string, channels=3)
-        image_decoded = tf.image.decode_image(image_string, channels=3)
+        image_decoded = tf.image.decode_png(image_string, channels=3)
         # cropped_image = tf.image.central_crop(image_decoded, 0.7)
         # rotated_image = tf.image.rot90(image_decoded, 1)
         resized_image = tf.image.resize_images(image_decoded,
