@@ -14,6 +14,7 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 
 ## TODO
 - fine-tuning (car-detection 참고)
+- --------------------------------- 아래부터는 gvcnn 을 고도화 한 후 작업에 집중할 것. 
 - data analysis.
 - data transformation. (center crop, etc...)
 - make ensemble module.
