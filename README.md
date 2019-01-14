@@ -6,10 +6,11 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 
 ## Quick Start
 - convert .tif to .png
+- create tfrecord file
 - execute train.py
 
 ## Evaluation
-- 
+- execute eval.py
 
 ## TODO
 - data analysis.
