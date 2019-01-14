@@ -2,7 +2,7 @@
 Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph node sections
 
 ## Data
-- 
+- PatchCamelyon (PCam)
 
 ## Quick Start
 - convert .tif to .png
