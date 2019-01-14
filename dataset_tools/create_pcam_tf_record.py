@@ -21,19 +21,22 @@ from dataset_tools import dataset_util
 RANDOM_SEED = 4357
 
 flags = tf.app.flags
-flags.DEFINE_string('data_dir',
+flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Root Directory to raw PCam dataset.')
-flags.DEFINE_string('annotations_dir', 'annotations',
-                    '(Relative) path to annotations directory.')
 flags.DEFINE_string('output_path',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/train.record',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection/test.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('label_map_path',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
+                    # '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
+                    None,
                     'Path to label map')
 
 FLAGS = flags.FLAGS
+
+TRAIN = 'train'
+TEST = 'test'
+
 
 
 def get_label_map_dict(label_map_path):
@@ -49,8 +52,8 @@ def get_label_map_dict(label_map_path):
 
 def dict_to_tf_example(image_name,
                        dataset_directory,
-                       label_map_dict,
-                       image_subdirectory='train'):
+                       label_map_dict=None,
+                       image_subdirectory=TEST):
     """
     Args:
       image: a single image name
@@ -78,7 +81,10 @@ def dict_to_tf_example(image_name,
     if image.format != 'PNG':
         raise ValueError('Image format not PNG')
     key = hashlib.sha256(encoded_png).hexdigest()
-    label = int(label_map_dict[image_name[:-4]])
+    if image_subdirectory.lower() == TRAIN:
+        label = int(label_map_dict[image_name[:-4]])
+    else:
+        label = -1
 
     example = tf.train.Example(features=tf.train.Features(feature={
         'image/height': dataset_util.int64_feature(height),
@@ -102,10 +108,12 @@ def main(_):
     options = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.GZIP)
     writer = tf.python_io.TFRecordWriter(FLAGS.output_path, options=options)
 
-    label_map_dict = get_label_map_dict(FLAGS.label_map_path)
+    label_map_dict = None
+    if FLAGS.label_map_path:
+        label_map_dict = get_label_map_dict(FLAGS.label_map_path)
 
     tf.logging.info('Reading from PCam dataset.')
-    dataset_path = os.path.join(FLAGS.data_dir, 'train')
+    dataset_path = os.path.join(FLAGS.dataset_dir, TEST)
     filenames = sorted(os.listdir(dataset_path))
     random.seed(RANDOM_SEED)
     random.shuffle(filenames)
@@ -114,7 +122,7 @@ def main(_):
         if idx % 100 == 0:
             tf.logging.info('On image %d of %d', idx, len(filenames))
 
-        tf_example = dict_to_tf_example(image, FLAGS.data_dir, label_map_dict)
+        tf_example = dict_to_tf_example(image, FLAGS.dataset_dir, label_map_dict)
         writer.write(tf_example.SerializeToString())
 
     writer.close()

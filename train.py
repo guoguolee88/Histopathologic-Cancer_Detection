@@ -5,7 +5,6 @@ from __future__ import print_function
 import tensorflow as tf
 
 import os
-import csv
 import cv2
 import numpy as np
 
@@ -85,11 +84,12 @@ flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 # flags.DEFINE_integer('validation_percentage', 5,
 #                      'What percentage of wavs to use as a validation set.')
-flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2.ckpt', 'name to save checkpoint file')
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2.ckpt',
+                    'name to save checkpoint file')
 
 
 # temporary constant
-PCAM_DATA_SIZE = 220025
+PCAM_TRAINING_DATA_SIZE = 220025
 
 
 def main(unused_argv):
@@ -200,8 +200,8 @@ def main(unused_argv):
 
             start_epoch = 0
             # Get the number of training/validation steps per epoch
-            tr_batches = int(PCAM_DATA_SIZE / FLAGS.batch_size)
-            if PCAM_DATA_SIZE % FLAGS.batch_size > 0:
+            tr_batches = int(PCAM_TRAINING_DATA_SIZE / FLAGS.batch_size)
+            if PCAM_TRAINING_DATA_SIZE % FLAGS.batch_size > 0:
                 tr_batches += 1
             # v_batches = int(dataset.data_size() / FLAGS.batch_size)
             # if val_data.data_size() % FLAGS.batch_size > 0:
