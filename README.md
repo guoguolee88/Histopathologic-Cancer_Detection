@@ -12,7 +12,8 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 - 
 
 ## TODO
-- data analysis and data transformation.
+- data analysis.(center crop, ...)
+- data transformation.
 - make ensemble module.
 - and...
 
