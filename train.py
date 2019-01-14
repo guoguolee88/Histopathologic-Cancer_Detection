@@ -92,6 +92,24 @@ flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2.ckpt',
 PCAM_TRAINING_DATA_SIZE = 220025
 
 
+def get_init_fn():
+    """Returns a function run by the chief worker to warm-start the training."""
+    checkpoint_exclude_scopes = ["InceptionV1/Logits", "InceptionV1/AuxLogits"]
+
+    exclusions = [scope.strip() for scope in checkpoint_exclude_scopes]
+
+    variables_to_restore = []
+    for var in slim.get_model_variables():
+        for exclusion in exclusions:
+            if var.op.name.startswith(exclusion):
+                break
+        else:
+            variables_to_restore.append(var)
+
+    return slim.assign_from_checkpoint_fn(FLAGS.tf_initial_checkpoint,
+                                          variables_to_restore)
+
+
 def main(unused_argv):
     tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -113,6 +131,17 @@ def main(unused_argv):
         with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
                 resnet_v2.resnet_v2_101(X, num_classes=num_classes)
+
+        # Print name and shape of each tensor.
+        tf.logging.info("Layers")
+        for k, v in end_points.items():
+            print('name = {}, shape = {}'.format(v.name, v.get_shape()))
+
+        # Print name and shape of parameter nodes  (values not yet initialized)
+        tf.logging.info("\n")
+        tf.logging.info("Parameters")
+        for v in slim.get_model_variables():
+            print('name = {}, shape = {}'.format(v.name, v.get_shape()))
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -204,6 +233,28 @@ def main(unused_argv):
             # variables_to_restore = tf.contrib.framework.get_variables_to_restore(exclude=['vgg_16/fc8'])
             # init_fn = tf.contrib.framework.assign_from_checkpoint_fn(FLAGS.tf_initial_checkpoint, variables_to_restore)
             # init_fn(sess)  # load the pretrained weights
+            # List of trainable variables of the layers we want to train
+            #
+            # """
+            # We want to train only the weights and biases of the two
+            # fully connected layers.
+            # """
+            # vars_to_optimize = [v for v in tf.trainable_variables() \
+            #                     if v.name.startswith('my_vgg16/wd') \
+            #                     or v.name.startswith('my_vgg16/bd')]
+            # print '\nvariables to optimize'
+            # for v in vars_to_optimize:
+            #     print
+            #     v.name, v.get_shape().as_list()
+            #
+            # learning_rate = 0.001 / 10.
+            # loss = tf.reduce_mean(
+            #     tf.nn.sparse_softmax_cross_entropy_with_logits(vgg.logits, tf.to_int64(ys)))
+            # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+            # """
+            # minimize with list of variables to update
+            # """
+            # train_op = optimizer.minimize(loss, var_list=vars_to_optimize)
 
             start_epoch = 0
             # Get the number of training/validation steps per epoch

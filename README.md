@@ -13,7 +13,7 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 - execute eval.py
 
 ## TODO
-- use pre-trained
+- fine-tuning 
 - data analysis.
 - data transformation. (center crop, etc...)
 - make ensemble module.
