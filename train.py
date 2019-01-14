@@ -51,10 +51,6 @@ flags.DEFINE_float('last_layer_gradient_multiplier', 1.0,
                    'The gradient multiplier for last layers, which is used to '
                    'boost the gradient of last layers if the value > 1.')
 
-# Settings for fine-tuning the network.
-flags.DEFINE_string('tf_initial_checkpoint', None,    # ./models/mobile.ckpt-20
-                    'The initial checkpoint in tensorflow format.')
-
 # Set to False if one does not want to re-use the trained classifier weights.
 flags.DEFINE_boolean('initialize_last_layer', True,
                      'Initialize the last layer.')
@@ -65,6 +61,12 @@ flags.DEFINE_integer('slow_start_step', 0,
 flags.DEFINE_float('slow_start_learning_rate', 1e-4,
                    'Learning rate employed during slow start.')
 
+# Settings for fine-tuning the network.
+flags.DEFINE_string('tf_initial_checkpoint',
+                    # './pre-trained/resnet_v2_101_2017_04_14/resnet_v2_101.ckpt',
+                    None,
+                    'The initial checkpoint in tensorflow format.')
+
 # Dataset settings.
 flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
@@ -73,8 +75,6 @@ flags.DEFINE_string('dataset_dir',
 flags.DEFINE_string('labels_path',
                     '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
                     'Where the dataset reside.')
-
-flags.DEFINE_float('learning_rate', 0.0001, 'learning rate')
 
 flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
@@ -85,7 +85,7 @@ flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 # flags.DEFINE_integer('validation_percentage', 5,
 #                      'What percentage of wavs to use as a validation set.')
-flags.DEFINE_string('checkpoint_name', 'resnet_v2.ckpt', 'checkpoint_name')
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2.ckpt', 'name to save checkpoint file')
 
 
 # temporary constant
@@ -189,16 +189,14 @@ def main(unused_argv):
         iterator = tr_dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
-        with tf.Session() as sess:
+        sess_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
+        with tf.Session(config = sess_config) as sess:
             sess.run(tf.global_variables_initializer())
 
             # Create a saver object which will save all the variables
-            # TODO:
             saver = tf.train.Saver()
             if FLAGS.tf_initial_checkpoint:
                 saver.restore(sess, FLAGS.tf_initial_checkpoint)
-            # saver = tf.train.Saver(
-            #     keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
 
             start_epoch = 0
             # Get the number of training/validation steps per epoch
@@ -209,6 +207,8 @@ def main(unused_argv):
             # if val_data.data_size() % FLAGS.batch_size > 0:
             #     v_batches += 1
 
+            # The filenames argument to the TFRecordDataset initializer can either be a string,
+            # a list of strings, or a tf.Tensor of strings.
             training_filenames = os.path.join(FLAGS.dataset_dir, 'train.record')
             ############################
             # Training loop.
@@ -241,11 +241,11 @@ def main(unused_argv):
                         sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
                                  feed_dict={X: train_batch_xs,
                                             ground_truth: train_batch_ys,
-                                            learning_rate:FLAGS.learning_rate,
+                                            learning_rate:FLAGS.base_learning_rate,
                                             is_training: True,
                                             dropout_keep_prob: 0.7})
 
-                    train_writer.add_summary(train_summary)
+                    train_writer.add_summary(train_summary, training_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
                                     (training_epoch, step, lr, train_accuracy * 100, train_loss))
 
@@ -258,7 +258,7 @@ def main(unused_argv):
 
                 # Save the model checkpoint periodically.
                 if (training_epoch <= FLAGS.how_many_training_epochs-1):
-                    checkpoint_path = os.path.join(FLAGS.train_logdir, FLAGS.checkpoint_name)
+                    checkpoint_path = os.path.join(FLAGS.train_logdir, FLAGS.ckpt_name_to_save)
                     tf.logging.info('Saving to "%s-%d"', checkpoint_path, training_epoch)
                     saver.save(sess, checkpoint_path, global_step=training_epoch)
 
