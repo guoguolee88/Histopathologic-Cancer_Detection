@@ -29,9 +29,9 @@ def main(_):
 
     X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
 
-    logits, _ = resnet_v2.resnet_v2_101(X,
-                                        num_classes=num_classes,
-                                        is_training=False)
+    with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+        logits, _ = \
+            resnet_v2.resnet_v2_101(X, num_classes=num_classes, is_training=False)
 
     # prediction = tf.argmax(logits, 1, name='prediction')
     prediction = tf.nn.softmax(logits)
@@ -55,7 +55,7 @@ def main(_):
         sess.run(tf.global_variables_initializer())
 
         saver = tf.train.Saver()
-        if FLAGS.tf_initial_checkpoint:
+        if FLAGS.checkpoint_path:
             saver.restore(sess, FLAGS.checkpoint_path)
             ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
             if ckpt and ckpt.model_checkpoint_path:
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=64,
+        default=32,
         help='How many items to predict with at once', )
     parser.add_argument(
         '--result_dir',

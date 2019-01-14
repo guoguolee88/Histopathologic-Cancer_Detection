@@ -110,7 +110,9 @@ def main(unused_argv):
         dropout_keep_prob = tf.placeholder(tf.float32, [])
         learning_rate = tf.placeholder(tf.float32, [])
 
-        logits, end_points = resnet_v2.resnet_v2_101(X, num_classes=num_classes)
+        with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+            logits, end_points = \
+                resnet_v2.resnet_v2_101(X, num_classes=num_classes)
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -197,6 +199,11 @@ def main(unused_argv):
             saver = tf.train.Saver()
             if FLAGS.tf_initial_checkpoint:
                 saver.restore(sess, FLAGS.tf_initial_checkpoint)
+            # # Restore only the layers up to fc7 (included)
+            # # Calling function `init_fn(sess)` will load all the pretrained weights.
+            # variables_to_restore = tf.contrib.framework.get_variables_to_restore(exclude=['vgg_16/fc8'])
+            # init_fn = tf.contrib.framework.assign_from_checkpoint_fn(FLAGS.tf_initial_checkpoint, variables_to_restore)
+            # init_fn(sess)  # load the pretrained weights
 
             start_epoch = 0
             # Get the number of training/validation steps per epoch
@@ -243,7 +250,7 @@ def main(unused_argv):
                                             ground_truth: train_batch_ys,
                                             learning_rate:FLAGS.base_learning_rate,
                                             is_training: True,
-                                            dropout_keep_prob: 0.7})
+                                            dropout_keep_prob: 0.5})
 
                     train_writer.add_summary(train_summary, training_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %

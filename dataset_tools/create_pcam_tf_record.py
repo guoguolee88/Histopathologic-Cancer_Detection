@@ -38,7 +38,6 @@ TRAIN = 'train'
 TEST = 'test'
 
 
-
 def get_label_map_dict(label_map_path):
     # read labels from .cvs
     label_map_dict = {}
