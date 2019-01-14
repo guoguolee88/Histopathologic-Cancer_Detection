@@ -92,24 +92,6 @@ flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2.ckpt',
 PCAM_TRAINING_DATA_SIZE = 220025
 
 
-def get_init_fn():
-    """Returns a function run by the chief worker to warm-start the training."""
-    checkpoint_exclude_scopes = ["InceptionV1/Logits", "InceptionV1/AuxLogits"]
-
-    exclusions = [scope.strip() for scope in checkpoint_exclude_scopes]
-
-    variables_to_restore = []
-    for var in slim.get_model_variables():
-        for exclusion in exclusions:
-            if var.op.name.startswith(exclusion):
-                break
-        else:
-            variables_to_restore.append(var)
-
-    return slim.assign_from_checkpoint_fn(FLAGS.tf_initial_checkpoint,
-                                          variables_to_restore)
-
-
 def main(unused_argv):
     tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -180,6 +162,28 @@ def main(unused_argv):
 
         # for variable in slim.get_model_variables():
         #     summaries.add(tf.summary.histogram(variable.op.name, variable))
+
+
+
+        # TODO
+        # # Variables to train.
+        # variables_to_train = tf_utils.get_variables_to_train(FLAGS)
+        #
+        # # and returns a train_tensor and summary_op
+        # total_loss, clones_gradients = model_deploy.optimize_clones(
+        #     clones,
+        #     optimizer,
+        #     var_list=variables_to_train)
+        # # Add total_loss to summary.
+        # summaries.add(tf.summary.scalar('total_loss', total_loss))
+        #
+        # # Create gradient updates.
+        # grad_updates = optimizer.apply_gradients(clones_gradients,
+        #                                          global_step=global_step)
+        # update_ops.append(grad_updates)
+        # update_op = tf.group(*update_ops)
+        # train_tensor = control_flow_ops.with_dependencies([update_op], total_loss,
+        #                                                   name='train_op')
 
         total_loss, grads_and_vars = train_utils.optimize(optimizer)
         # total_loss, grads_and_vars = train_utils.optimize(optimizer)
