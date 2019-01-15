@@ -305,24 +305,6 @@ def add_variables_summaries(learning_rate):
     return summaries
 
 
-# def _get_init_fn():
-#     """Returns a function run by the chief worker to warm-start the training."""
-#     checkpoint_exclude_scopes = ["InceptionV1/Logits", "InceptionV1/AuxLogits"]
-#
-#     exclusions = [scope.strip() for scope in checkpoint_exclude_scopes]
-#
-#     variables_to_restore = []
-#     for var in slim.get_model_variables():
-#         for exclusion in exclusions:
-#             if var.op.name.startswith(exclusion):
-#                 break
-#         else:
-#             variables_to_restore.append(var)
-#
-#     return slim.assign_from_checkpoint_fn(FLAGS.tf_initial_checkpoint,
-#                                           variables_to_restore)
-
-
 def restore_fn(flags):
     """Returns a function run by the chief worker to warm-start the training.
     Note that the init_fn is only run when initializing the model during the very
