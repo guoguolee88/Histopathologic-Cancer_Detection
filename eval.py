@@ -41,11 +41,11 @@ def main(_):
     # Prepare data
     ###############
     filenames = tf.placeholder(tf.string, shape=[])
-    tr_dataset = eval_data.Dataset(filenames,
+    eval_dataset = eval_data.Dataset(filenames,
                                    FLAGS.batch_size,
                                    FLAGS.height,
                                    FLAGS.width)
-    iterator = tr_dataset.dataset.make_one_shot_iterator()
+    iterator = eval_dataset.dataset.make_initializable_iterator()
     next_batch = iterator.get_next()
 
     # TensorFlow session: grow memory when needed. TF, DO NOT USE ALL MY GPU MEMORY!!!
@@ -55,20 +55,26 @@ def main(_):
         sess.run(tf.global_variables_initializer())
 
         saver = tf.train.Saver()
-        if FLAGS.checkpoint_path:
-            saver.restore(sess, FLAGS.checkpoint_path)
-            ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
-            if ckpt and ckpt.model_checkpoint_path:
-                saver.restore(sess, ckpt.model_checkpoint_path)
-                # Assuming model_checkpoint_path looks something like:
-                #   /my-favorite-path/imagenet_train/model.ckpt-0,
-                # extract global_step from it.
-                global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
-                print('Successfully loaded model from %s at step=%s.' % (
-                    ckpt.model_checkpoint_path, global_step))
-            else:
-                print('No checkpoint file found at %s' % FLAGS.checkpoint_dir)
-                return
+        if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
+            checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
+        else:
+            checkpoint_path = FLAGS.checkpoint_path
+        saver.restore(sess, checkpoint_path)
+
+        global_step = checkpoint_path.split('/')[-1].split('-')[-1]
+
+        # ckpt = tf.train.get_checkpoint_state(checkpoint_path)
+        # if ckpt and ckpt.model_checkpoint_path:
+        #     saver.restore(sess, ckpt.model_checkpoint_path)
+        #     # Assuming model_checkpoint_path looks something like:
+        #     #   /my-favorite-path/imagenet_train/model.ckpt-0,
+        #     # extract global_step from it.
+        #     global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+        #     print('Successfully loaded model from %s at step=%s.' % (
+        #         ckpt.model_checkpoint_path, global_step))
+        # else:
+        #     print('No checkpoint file found at %s' % FLAGS.checkpoint_path)
+        #     return
 
         # Get the number of prediction steps
         batches = int(PCAM_EVAL_DATA_SIZE / FLAGS.batch_size)
@@ -101,17 +107,17 @@ def main(_):
             #     cv2.waitKey(100)
             #     cv2.destroyAllWindows()
 
-            pred = sess.run(prediction, feed_dict={X: batch_xs})
+            pred = sess.run(predicted_labels, feed_dict={X: batch_xs})
             size = len(filename)
             for n in range(size):
-                submission[filename[n].decode('UTF-8')] = id2name[pred[n]]
+                submission[filename[n].decode('UTF-8')[:-4]] = id2name[pred[n]]
 
             count += size
             tf.logging.info('Total count: #%d' % count)
 
         end_time = datetime.datetime.now()
-        tf.logging.info('#%d Data, End prediction: %.5f' % (PCAM_EVAL_DATA_SIZE, end_time))
-        tf.logging.info('prediction waste time: %.5f' % (end_time - start_time))
+        tf.logging.info('#%d Data, End prediction: %s' % (PCAM_EVAL_DATA_SIZE, end_time))
+        tf.logging.info('prediction waste time: %s' % (end_time - start_time))
 
 
     ######################################
@@ -144,7 +150,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--checkpoint_path',
         type=str,
-        default=os.getcwd() + './models/resnet_v2.ckpt',
+        default=os.getcwd() + '/models',
         help='Directory where to read training checkpoints.')
     parser.add_argument(
         '--model_architecture',
@@ -152,12 +158,12 @@ if __name__ == '__main__':
         default='resnet_v2_101',
         help='What model architecture to use')
     parser.add_argument(
-        '--image_height',
+        '--height',
         type=int,
         default=224,  # nasnet, mobilenet
         help='how do you want image resize height.')
     parser.add_argument(
-        '--image_width',
+        '--width',
         type=int,
         default=224,  # nasnet, mobilenet
         help='how do you want image resize width.')
@@ -169,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=32,
+        default=64,
         help='How many items to predict with at once', )
     parser.add_argument(
         '--result_dir',
