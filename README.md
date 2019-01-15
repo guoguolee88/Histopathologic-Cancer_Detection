@@ -15,8 +15,8 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 ## TODO 
 - data analysis.
 - data transformation. (center crop, etc...)
+- apply other networks (Inception V4, Inception-ResNet-v2, and ?)
 - make ensemble module.
-- and ?
 
 ## References from
 - https://github.com/tensorflow/tensorflow/blob/r1.11/tensorflow/examples/how_tos/reading_data/fully_connected_reader.py
