@@ -94,17 +94,15 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_string('labels_path',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
-                    'Where the dataset reside.')
-
 flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-
 flags.DEFINE_integer('batch_size', 64, 'batch size')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
+flags.DEFINE_string('labels_path',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
+                    'Where the dataset reside.')
 # flags.DEFINE_integer('validation_percentage', 5,
 #                      'What percentage of wavs to use as a validation set.')
 
