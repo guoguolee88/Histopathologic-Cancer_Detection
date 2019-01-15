@@ -164,7 +164,6 @@ if __name__ == '__main__':
     parser.add_argument(
         '--labels',
         type=str,
-        # default='Black-grass,Charlock,Cleavers,Common Chickweed,Common wheat,Fat Hen,Loose Silky-bent,Maize,Scentless Mayweed,Shepherds Purse,Small-flowered Cranesbill,Sugar beet',
         default='0,1',
         help='Labels to use', )
     parser.add_argument(

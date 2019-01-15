@@ -22,6 +22,8 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2.ckpt',
+                    'Name to save checkpoint file')
 flags.DEFINE_integer('log_steps', 10,
                      'Display logging information at every log_steps.')
 flags.DEFINE_integer('save_interval_secs', 1200,
@@ -61,10 +63,31 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
                    'Learning rate employed during slow start.')
 
 # Settings for fine-tuning the network.
-flags.DEFINE_string('tf_initial_checkpoint',
-                    # './pre-trained/resnet_v2_101_2017_04_14/resnet_v2_101.ckpt',
+flags.DEFINE_string('pre_trained_checkpoint',
+                    './pre-trained/resnet_v2_101_2017_04_14/resnet_v2_101.ckpt',
+                    # None,
+                    'The pre-trained checkpoint in tensorflow format.')
+flags.DEFINE_string('checkpoint_exclude_scopes',
+                    'resnet_v2_101/logits',
+                    # None,
+                    'Comma-separated list of scopes of variables to exclude '
+                    'when restoring from a checkpoint.')
+flags.DEFINE_string('trainable_scopes',
+                    # 'ssd_300_vgg/block4_box, ssd_300_vgg/block7_box, \
+                    #  ssd_300_vgg/block8_box, ssd_300_vgg/block9_box, \
+                    #  ssd_300_vgg/block10_box, ssd_300_vgg/block11_box',
                     None,
-                    'The initial checkpoint in tensorflow format.')
+                    'Comma-separated list of scopes to filter the set of variables '
+                    'to train. By default, None would train all the variables.')
+flags.DEFINE_string('checkpoint_model_scope',
+                    None,
+                    'Model scope in the checkpoint. None if the same as the trained model.')
+flags.DEFINE_string('model_name',
+                    'resnet_v2_101',
+                    'The name of the architecture to train.')
+flags.DEFINE_boolean('ignore_missing_vars',
+                     False,
+                     'When restoring a checkpoint would ignore missing variables.')
 
 # Dataset settings.
 flags.DEFINE_string('dataset_dir',
@@ -84,8 +107,7 @@ flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 # flags.DEFINE_integer('validation_percentage', 5,
 #                      'What percentage of wavs to use as a validation set.')
-flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2.ckpt',
-                    'name to save checkpoint file')
+
 
 
 # temporary constant
@@ -115,15 +137,18 @@ def main(unused_argv):
                 resnet_v2.resnet_v2_101(X, num_classes=num_classes)
 
         # Print name and shape of each tensor.
+        tf.logging.info("++++++++++++++++++++++++++++++++++")
         tf.logging.info("Layers")
+        tf.logging.info("++++++++++++++++++++++++++++++++++")
         for k, v in end_points.items():
-            print('name = {}, shape = {}'.format(v.name, v.get_shape()))
+            tf.logging.info('name = %s, shape = %s' % (v.name, v.get_shape()))
 
         # Print name and shape of parameter nodes  (values not yet initialized)
-        tf.logging.info("\n")
+        tf.logging.info("++++++++++++++++++++++++++++++++++")
         tf.logging.info("Parameters")
+        tf.logging.info("++++++++++++++++++++++++++++++++++")
         for v in slim.get_model_variables():
-            print('name = {}, shape = {}'.format(v.name, v.get_shape()))
+            tf.logging.info('name = %s, shape = %s' % (v.name, v.get_shape()))
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -143,9 +168,9 @@ def main(unused_argv):
         # the updates for the batch_norm variables created by model.
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
-        # Add summaries for model variables.
-        for model_var in slim.get_model_variables():
-            summaries.add(tf.summary.histogram(model_var.op.name, model_var))
+        # # Add summaries for model variables.
+        # for model_var in slim.get_model_variables():
+        #     summaries.add(tf.summary.histogram(model_var.op.name, model_var))
 
         # Add summaries for losses.
         for loss in tf.get_collection(tf.GraphKeys.LOSSES):
@@ -160,12 +185,9 @@ def main(unused_argv):
         optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
 
-        # for variable in slim.get_model_variables():
-        #     summaries.add(tf.summary.histogram(variable.op.name, variable))
+        for variable in slim.get_model_variables():
+            summaries.add(tf.summary.histogram(variable.op.name, variable))
 
-
-
-        # TODO
         # # Variables to train.
         # variables_to_train = tf_utils.get_variables_to_train(FLAGS)
         #
@@ -174,17 +196,6 @@ def main(unused_argv):
         #     clones,
         #     optimizer,
         #     var_list=variables_to_train)
-        # # Add total_loss to summary.
-        # summaries.add(tf.summary.scalar('total_loss', total_loss))
-        #
-        # # Create gradient updates.
-        # grad_updates = optimizer.apply_gradients(clones_gradients,
-        #                                          global_step=global_step)
-        # update_ops.append(grad_updates)
-        # update_op = tf.group(*update_ops)
-        # train_tensor = control_flow_ops.with_dependencies([update_op], total_loss,
-        #                                                   name='train_op')
-
         total_loss, grads_and_vars = train_utils.optimize(optimizer)
         # total_loss, grads_and_vars = train_utils.optimize(optimizer)
         total_loss = tf.check_numerics(total_loss, 'Loss is inf or nan.')
@@ -229,20 +240,13 @@ def main(unused_argv):
             sess.run(tf.global_variables_initializer())
 
             # Create a saver object which will save all the variables
-            saver = tf.train.Saver()
-            if FLAGS.tf_initial_checkpoint:
-                saver.restore(sess, FLAGS.tf_initial_checkpoint)
-            # # Restore only the layers up to fc7 (included)
-            # # Calling function `init_fn(sess)` will load all the pretrained weights.
-            # variables_to_restore = tf.contrib.framework.get_variables_to_restore(exclude=['vgg_16/fc8'])
-            # init_fn = tf.contrib.framework.assign_from_checkpoint_fn(FLAGS.tf_initial_checkpoint, variables_to_restore)
-            # init_fn(sess)  # load the pretrained weights
-            # List of trainable variables of the layers we want to train
-            #
-            # """
-            # We want to train only the weights and biases of the two
-            # fully connected layers.
-            # """
+            saver = tf.train.Saver(keep_checkpoint_every_n_hours=1.0)
+            if FLAGS.pre_trained_checkpoint:
+                # saver.restore(sess, FLAGS.pre_trained_checkpoint)
+                train_utils.restore_fn(FLAGS)
+
+            # # We want to train only the weights and biases of the two
+            # # fully connected layers.
             # vars_to_optimize = [v for v in tf.trainable_variables() \
             #                     if v.name.startswith('my_vgg16/wd') \
             #                     or v.name.startswith('my_vgg16/bd')]
@@ -255,9 +259,7 @@ def main(unused_argv):
             # loss = tf.reduce_mean(
             #     tf.nn.sparse_softmax_cross_entropy_with_logits(vgg.logits, tf.to_int64(ys)))
             # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-            # """
-            # minimize with list of variables to update
-            # """
+            # # minimize with list of variables to update
             # train_op = optimizer.minimize(loss, var_list=vars_to_optimize)
 
             start_epoch = 0
@@ -305,7 +307,7 @@ def main(unused_argv):
                                             ground_truth: train_batch_ys,
                                             learning_rate:FLAGS.base_learning_rate,
                                             is_training: True,
-                                            dropout_keep_prob: 0.5})
+                                            dropout_keep_prob: 0.7})
 
                     train_writer.add_summary(train_summary, training_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %

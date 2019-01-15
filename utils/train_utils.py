@@ -323,22 +323,21 @@ def add_variables_summaries(learning_rate):
 #                                           variables_to_restore)
 
 
-def get_init_fn(flags):
+def restore_fn(flags):
     """Returns a function run by the chief worker to warm-start the training.
     Note that the init_fn is only run when initializing the model during the very
     first global step.
 
-    Returns:
-      An init function run by the supervisor.
     """
-    if flags.checkpoint_path is None:
-        return None
+    # if flags.tf_initial_checkpoint is None:
+    #     return None
+
     # Warn the user if a checkpoint exists in the train_dir. Then ignore.
-    if tf.train.latest_checkpoint(flags.train_dir):
-        tf.logging.info(
-            'Ignoring --checkpoint_path because a checkpoint already exists in %s'
-            % flags.train_dir)
-        return None
+    # if tf.train.latest_checkpoint(flags.train_dir):
+    #     tf.logging.info(
+    #         'Ignoring --checkpoint_path because a checkpoint already exists in %s'
+    #         % flags.train_dir)
+    #     return None
 
     exclusions = []
     if flags.checkpoint_exclude_scopes:
@@ -362,16 +361,11 @@ def get_init_fn(flags):
              for var in variables_to_restore}
 
 
-    if tf.gfile.IsDirectory(flags.checkpoint_path):
-        checkpoint_path = tf.train.latest_checkpoint(flags.checkpoint_path)
-    else:
-        checkpoint_path = flags.checkpoint_path
-    tf.logging.info('Fine-tuning from %s. Ignoring missing vars: %s' % (checkpoint_path, flags.ignore_missing_vars))
-
-    return slim.assign_from_checkpoint_fn(
-        checkpoint_path,
-        variables_to_restore,
-        ignore_missing_vars=flags.ignore_missing_vars)
+    tf.logging.info('Fine-tuning from %s. Ignoring missing vars: %s' %
+                    (flags.pre_trained_checkpoint, flags.ignore_missing_vars))
+    slim.assign_from_checkpoint_fn(flags.pre_trained_checkpoint,
+                                   variables_to_restore,
+                                   ignore_missing_vars=flags.ignore_missing_vars)
 
 
 def get_variables_to_train(flags):
