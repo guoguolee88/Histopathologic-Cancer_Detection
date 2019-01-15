@@ -242,7 +242,6 @@ def main(unused_argv):
             # Create a saver object which will save all the variables
             saver = tf.train.Saver(keep_checkpoint_every_n_hours=1.0)
             if FLAGS.pre_trained_checkpoint:
-                # saver.restore(sess, FLAGS.pre_trained_checkpoint)
                 train_utils.restore_fn(FLAGS)
 
             # # We want to train only the weights and biases of the two
