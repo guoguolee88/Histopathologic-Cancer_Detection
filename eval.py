@@ -42,9 +42,9 @@ def main(_):
     ###############
     filenames = tf.placeholder(tf.string, shape=[])
     eval_dataset = eval_data.Dataset(filenames,
-                                   FLAGS.batch_size,
-                                   FLAGS.height,
-                                   FLAGS.width)
+                                     FLAGS.batch_size,
+                                     FLAGS.height,
+                                     FLAGS.width)
     iterator = eval_dataset.dataset.make_initializable_iterator()
     next_batch = iterator.get_next()
 
@@ -54,6 +54,7 @@ def main(_):
         # sess.run(tf.local_variables_initializer())
         sess.run(tf.global_variables_initializer())
 
+        # Create a saver object which will save all the variables
         saver = tf.train.Saver()
         if tf.gfile.IsDirectory(FLAGS.checkpoint_path):
             checkpoint_path = tf.train.latest_checkpoint(FLAGS.checkpoint_path)
