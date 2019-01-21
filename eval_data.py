@@ -61,6 +61,9 @@ class Dataset(object):
         # here.  Since we are not applying any distortions in this
         # example, and the next step expects the image to be flattened
         # into a vector, we don't bother.
+        image = tf.image.central_crop(image, 0.5)
+        image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
+
         return image, filename
 
 
