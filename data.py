@@ -66,12 +66,19 @@ class Dataset(object):
         # example, and the next step expects the image to be flattened
         # into a vector, we don't bother.
         image = tf.image.central_crop(image, 0.5)
+        image = tf.image.random_flip_up_down(image)
+        image = tf.image.random_flip_left_right(image)
+        image = tf.image.random_brightness(image, max_delta=0.3)
+        image = tf.image.random_contrast(image, lower=0.2, upper=2.0)
+        image = tf.image.random_hue(image, max_delta=0.08)
+        image = tf.image.random_saturation(image, lower=0.2, upper=2.0)
         image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
         return image, label
 
 
     def normalize(self, image, label):
-        """Convert `image` from [0, 255] -> [-0.5, 0.5] floats."""
-        image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
+        # """Convert `image` from [0, 255] -> [-0.5, 0.5] floats."""
+        # image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
+        image = tf.image.per_image_standardization(image)
         return image, label

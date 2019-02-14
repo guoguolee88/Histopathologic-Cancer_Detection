@@ -64,7 +64,7 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_101_2017_04_14/resnet_v2_101.ckpt',
+                    './pre-trained/resnet_v2_101.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
