@@ -34,7 +34,7 @@ flags.DEFINE_boolean('save_summaries_images', False,
 flags.DEFINE_string('summaries_dir', './models/train_logs',
                      'Where to save summary logs for TensorBoard.')
 
-flags.DEFINE_enum('learning_policy', 'step', ['step'],
+flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
 flags.DEFINE_float('base_learning_rate', .0001,
                    'The base learning rate for model training.')
@@ -68,8 +68,8 @@ flags.DEFINE_string('pre_trained_checkpoint',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    # 'resnet_v2_101/logits',
-                    None,
+                    'resnet_v2_101/logits',
+                    # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
@@ -94,18 +94,12 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 100,
+flags.DEFINE_integer('how_many_training_epochs', 200,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 64, 'batch size')
+flags.DEFINE_integer('batch_size', 32, 'batch size')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
-flags.DEFINE_string('labels_path',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
-                    'Where the dataset reside.')
-# flags.DEFINE_integer('validation_percentage', 5,
-#                      'What percentage of wavs to use as a validation set.')
-
 
 
 # temporary constant
@@ -127,8 +121,8 @@ def main(unused_argv):
         X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool)
-        dropout_keep_prob = tf.placeholder(tf.float32, [])
-        learning_rate = tf.placeholder(tf.float32, [])
+        # dropout_keep_prob = tf.placeholder(tf.float32, [])
+        # learning_rate = tf.placeholder(tf.float32, [])
 
         with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
@@ -172,30 +166,20 @@ def main(unused_argv):
 
         # Add summaries for losses.
         for loss in tf.get_collection(tf.GraphKeys.LOSSES):
-            # for loss in tf.get_collection(tf.GraphKeys.LOSSES):
             summaries.add(tf.summary.scalar('losses/%s' % loss.op.name, loss))
 
-        # learning_rate = train_utils.get_model_learning_rate(
-        #     FLAGS.learning_policy, FLAGS.base_learning_rate,
-        #     FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
-        #     None, FLAGS.learning_power,
-        #     FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
+        learning_rate = train_utils.get_model_learning_rate(
+            FLAGS.learning_policy, FLAGS.base_learning_rate,
+            FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
+            FLAGS.training_number_of_steps, FLAGS.learning_power,
+            FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
         optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
 
         for variable in slim.get_model_variables():
             summaries.add(tf.summary.histogram(variable.op.name, variable))
 
-        # # Variables to train.
-        # variables_to_train = tf_utils.get_variables_to_train(FLAGS)
-        #
-        # # and returns a train_tensor and summary_op
-        # total_loss, clones_gradients = model_deploy.optimize_clones(
-        #     clones,
-        #     optimizer,
-        #     var_list=variables_to_train)
         total_loss, grads_and_vars = train_utils.optimize(optimizer)
-        # total_loss, grads_and_vars = train_utils.optimize(optimizer)
         total_loss = tf.check_numerics(total_loss, 'Loss is inf or nan.')
         summaries.add(tf.summary.scalar('total_loss', total_loss))
 
@@ -242,31 +226,11 @@ def main(unused_argv):
             if FLAGS.pre_trained_checkpoint:
                 train_utils.restore_fn(FLAGS)
 
-            # # We want to train only the weights and biases of the two
-            # # fully connected layers.
-            # vars_to_optimize = [v for v in tf.trainable_variables() \
-            #                     if v.name.startswith('my_vgg16/wd') \
-            #                     or v.name.startswith('my_vgg16/bd')]
-            # print '\nvariables to optimize'
-            # for v in vars_to_optimize:
-            #     print
-            #     v.name, v.get_shape().as_list()
-            #
-            # learning_rate = 0.001 / 10.
-            # loss = tf.reduce_mean(
-            #     tf.nn.sparse_softmax_cross_entropy_with_logits(vgg.logits, tf.to_int64(ys)))
-            # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-            # # minimize with list of variables to update
-            # train_op = optimizer.minimize(loss, var_list=vars_to_optimize)
-
             start_epoch = 0
             # Get the number of training/validation steps per epoch
             tr_batches = int(PCAM_TRAINING_DATA_SIZE / FLAGS.batch_size)
             if PCAM_TRAINING_DATA_SIZE % FLAGS.batch_size > 0:
                 tr_batches += 1
-            # v_batches = int(dataset.data_size() / FLAGS.batch_size)
-            # if val_data.data_size() % FLAGS.batch_size > 0:
-            #     v_batches += 1
 
             # The filenames argument to the TFRecordDataset initializer can either be a string,
             # a list of strings, or a tf.Tensor of strings.
@@ -274,9 +238,9 @@ def main(unused_argv):
             ############################
             # Training loop.
             ############################
-            for training_epoch in range(start_epoch, FLAGS.how_many_training_epochs):
+            for num_epoch in range(start_epoch, FLAGS.how_many_training_epochs):
                 print("------------------------------------")
-                print(" Epoch {} ".format(training_epoch))
+                print(" Epoch {} ".format(num_epoch))
                 print("------------------------------------")
 
                 sess.run(iterator.initializer, feed_dict={filenames: training_filenames})
@@ -302,13 +266,12 @@ def main(unused_argv):
                         sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
                                  feed_dict={X: train_batch_xs,
                                             ground_truth: train_batch_ys,
-                                            learning_rate:FLAGS.base_learning_rate,
-                                            is_training: True,
-                                            dropout_keep_prob: 0.7})
+                                            # learning_rate:FLAGS.base_learning_rate,
+                                            is_training: True})
 
-                    train_writer.add_summary(train_summary, training_epoch)
+                    train_writer.add_summary(train_summary, num_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
-                                    (training_epoch, step, lr, train_accuracy * 100, train_loss))
+                                    (num_epoch, step, lr, train_accuracy * 100, train_loss))
 
                 ###################################################
                 # TODO: Validate the model on the validation set
@@ -318,10 +281,10 @@ def main(unused_argv):
 
 
                 # Save the model checkpoint periodically.
-                if (training_epoch <= FLAGS.how_many_training_epochs-1):
+                if (num_epoch <= FLAGS.how_many_training_epochs-1):
                     checkpoint_path = os.path.join(FLAGS.train_logdir, FLAGS.ckpt_name_to_save)
-                    tf.logging.info('Saving to "%s-%d"', checkpoint_path, training_epoch)
-                    saver.save(sess, checkpoint_path, global_step=training_epoch)
+                    tf.logging.info('Saving to "%s-%d"', checkpoint_path, num_epoch)
+                    saver.save(sess, checkpoint_path, global_step=num_epoch)
 
 
 
