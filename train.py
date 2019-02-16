@@ -34,11 +34,11 @@ flags.DEFINE_boolean('save_summaries_images', False,
 flags.DEFINE_string('summaries_dir', './models/train_logs',
                      'Where to save summary logs for TensorBoard.')
 
-flags.DEFINE_enum('learning_policy', 'step', ['poly', 'step'],
+flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
 flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 0.1,
+flags.DEFINE_float('learning_rate_decay_factor', 0.01,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
@@ -104,8 +104,8 @@ flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
-PCAM_TRAIN_DATA_SIZE = 20001
-PCAM_VALIDATE_DATA_SIZE = 2000
+PCAM_TRAIN_DATA_SIZE = 20000
+PCAM_VALIDATE_DATA_SIZE = 2011
 
 
 def main(unused_argv):
@@ -257,33 +257,33 @@ def main(unused_argv):
                     # # Verify image
                     # # assert not np.any(np.isnan(train_batch_xs))
                     # n_batch = train_batch_xs.shape[0]
-                    # n_view = train_batch_xs.shape[1]
+                    # # n_view = train_batch_xs.shape[1]
                     # for i in range(n_batch):
-                    #     for j in range(n_view):
-                    #         img = train_batch_xs[i][j]
-                    #         # scipy.misc.toimage(img).show()
-                    #         # Or
-                    #         img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                    #         cv2.imwrite('/home/ace19/Pictures/' + str(i) +
-                    #                     '_' + str(j) + '.png', img)
-                    #         # cv2.imshow(str(train_batch_ys[idx]), img)
-                    #         cv2.waitKey(100)
-                    #         cv2.destroyAllWindows()
+                    #     img = train_batch_xs[i]
+                    #     # scipy.misc.toimage(img).show()
+                    #     # Or
+                    #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                    #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
+                    #     # cv2.imshow(str(train_batch_ys[idx]), img)
+                    #     cv2.waitKey(100)
+                    #     cv2.destroyAllWindows()
 
                     # # Run the graph with this batch of training data.
                     lr, train_summary, train_accuracy, train_loss, _ = \
                         sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
-                                 feed_dict={X: train_batch_xs,
-                                            ground_truth: train_batch_ys,
-                                            # learning_rate:FLAGS.base_learning_rate,
-                                            is_training: True})
+                                 feed_dict={
+                                     X: train_batch_xs,
+                                     ground_truth: train_batch_ys,
+                                     # learning_rate:FLAGS.base_learning_rate,
+                                     is_training: True
+                                 })
 
                     train_writer.add_summary(train_summary, num_epoch)
-                    tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
+                    tf.logging.info('Epoch #%d, Step #%d, rate %.15f, accuracy %.1f%%, loss %f' %
                                     (num_epoch, step, lr, train_accuracy * 100, train_loss))
 
                 ###################################################
-                # TODO: Validate the model on the validation set
+                # Validate the model on the validation set
                 ###################################################
                 tf.logging.info('--------------------------')
                 tf.logging.info(' Start validation ')
@@ -298,7 +298,7 @@ def main(unused_argv):
                     # Run a validation step and capture training summaries for TensorBoard
                     # with the `merged` op.
                     validation_summary, validation_accuracy, conf_matrix = sess.run(
-                        [learning_rate, summary_op, accuracy, confusion_matrix],
+                        [summary_op, accuracy, confusion_matrix],
                         feed_dict={
                             X: validation_batch_xs,
                             ground_truth: validation_batch_ys,

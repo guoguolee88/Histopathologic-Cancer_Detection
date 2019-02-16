@@ -13,6 +13,8 @@ class Dataset(object):
     """
 
     def __init__(self, tfrecord_path, batch_size, num_epochs, height, width):
+        self.original_size = 96
+
         self.resize_h = height
         self.resize_w = width
 
@@ -51,7 +53,7 @@ class Dataset(object):
 
         # Convert from a scalar string tensor to a float32 tensor with shape
         image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
-        image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
+        image = tf.image.resize_images(image_decoded, [self.original_size, self.original_size])
 
         # Convert label from a scalar uint8 tensor to an int32 scalar.
         label = tf.cast(features['image/label'], tf.int64)
@@ -65,20 +67,21 @@ class Dataset(object):
         # here.  Since we are not applying any distortions in this
         # example, and the next step expects the image to be flattened
         # into a vector, we don't bother.
-        image = tf.image.central_crop(image, 0.3)
-        image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
+        image = tf.image.central_crop(image, 0.33)
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
-        image = tf.image.random_brightness(image, max_delta=0.3)
-        image = tf.image.random_contrast(image, lower=0.2, upper=2.0)
-        image = tf.image.random_hue(image, max_delta=0.08)
-        image = tf.image.random_saturation(image, lower=0.2, upper=2.0)
+        image = tf.image.random_brightness(image, max_delta=0.2)
+        image = tf.image.random_contrast(image, lower=0.7, upper=1.0)
+        # image = tf.image.random_hue(image, max_delta=0.08)
+        # image = tf.image.random_saturation(image, lower=0.7, upper=1.0)
+        # TODO: tf.pad ?
+        image = tf.image.resize_images(image, [self.resize_h, self.resize_w], method=2)
 
         return image, label
 
 
     def normalize(self, image, label):
         # """Convert `image` from [0, 255] -> [-0.5, 0.5] floats."""
-        # image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
-        image = tf.image.per_image_standardization(image)
+        image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
+        # image = tf.image.per_image_standardization(image)
         return image, label

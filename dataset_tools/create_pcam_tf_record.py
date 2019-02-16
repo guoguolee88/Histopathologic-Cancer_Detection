@@ -22,6 +22,7 @@ RANDOM_SEED = 4357
 
 
 TRAIN = 'train'
+VALIDATE = 'validate'
 TEST = 'test'
 
 
