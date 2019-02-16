@@ -34,9 +34,9 @@ flags.DEFINE_boolean('save_summaries_images', False,
 flags.DEFINE_string('summaries_dir', './models/train_logs',
                      'Where to save summary logs for TensorBoard.')
 
-flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
+flags.DEFINE_enum('learning_policy', 'step', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0001,
+flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 0.1,
                    'The rate to decay the base learning rate.')
@@ -103,7 +103,9 @@ flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
 # temporary constant
-PCAM_TRAINING_DATA_SIZE = 220025
+# PCAM_TRAIN_DATA_SIZE = 220025
+PCAM_TRAIN_DATA_SIZE = 20001
+PCAM_VALIDATE_DATA_SIZE = 2000
 
 
 def main(unused_argv):
@@ -207,14 +209,15 @@ def main(unused_argv):
         # Merge all summaries together.
         summary_op = tf.summary.merge(list(summaries))
         train_writer = tf.summary.FileWriter(FLAGS.summaries_dir, graph)
+        validation_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/validation', graph)
 
         ###############
         # Prepare data
         ###############
-        filenames = tf.placeholder(tf.string, shape=[])
-        tr_dataset = data.Dataset(filenames, FLAGS.batch_size, FLAGS.how_many_training_epochs,
+        tfrecord_filenames = tf.placeholder(tf.string, shape=[])
+        dataset = data.Dataset(tfrecord_filenames, FLAGS.batch_size, FLAGS.how_many_training_epochs,
                                   FLAGS.height, FLAGS.width)
-        iterator = tr_dataset.dataset.make_initializable_iterator()
+        iterator = dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
         sess_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
@@ -228,13 +231,17 @@ def main(unused_argv):
 
             start_epoch = 0
             # Get the number of training/validation steps per epoch
-            tr_batches = int(PCAM_TRAINING_DATA_SIZE / FLAGS.batch_size)
-            if PCAM_TRAINING_DATA_SIZE % FLAGS.batch_size > 0:
+            tr_batches = int(PCAM_TRAIN_DATA_SIZE / FLAGS.batch_size)
+            if PCAM_TRAIN_DATA_SIZE % FLAGS.batch_size > 0:
                 tr_batches += 1
+            val_batches = int(PCAM_VALIDATE_DATA_SIZE / FLAGS.batch_size)
+            if PCAM_VALIDATE_DATA_SIZE % FLAGS.batch_size > 0:
+                val_batches += 1
 
             # The filenames argument to the TFRecordDataset initializer can either be a string,
             # a list of strings, or a tf.Tensor of strings.
-            training_filenames = os.path.join(FLAGS.dataset_dir, 'train.record')
+            train_record_filenames = os.path.join(FLAGS.dataset_dir, 'train.record')
+            validate_record_filenames = os.path.join(FLAGS.dataset_dir, 'validate.record')
             ############################
             # Training loop.
             ############################
@@ -243,23 +250,25 @@ def main(unused_argv):
                 print(" Epoch {} ".format(num_epoch))
                 print("------------------------------------")
 
-                sess.run(iterator.initializer, feed_dict={filenames: training_filenames})
+                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: train_record_filenames})
                 for step in range(tr_batches):
-                    # Pull the image batch we'll use for training.
-                    # train_batch_xs, train_batch_ys = dataset.next_batch(FLAGS.batch_size)
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
 
                     # # Verify image
+                    # # assert not np.any(np.isnan(train_batch_xs))
                     # n_batch = train_batch_xs.shape[0]
+                    # n_view = train_batch_xs.shape[1]
                     # for i in range(n_batch):
-                    #     img = train_batch_xs[i]
-                    #     # scipy.misc.toimage(img).show()
-                    #     # Or
-                    #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                    #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
-                    #     # cv2.imshow(str(train_batch_ys[idx]), img)
-                    #     cv2.waitKey(100)
-                    #     cv2.destroyAllWindows()
+                    #     for j in range(n_view):
+                    #         img = train_batch_xs[i][j]
+                    #         # scipy.misc.toimage(img).show()
+                    #         # Or
+                    #         img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                    #         cv2.imwrite('/home/ace19/Pictures/' + str(i) +
+                    #                     '_' + str(j) + '.png', img)
+                    #         # cv2.imshow(str(train_batch_ys[idx]), img)
+                    #         cv2.waitKey(100)
+                    #         cv2.destroyAllWindows()
 
                     # # Run the graph with this batch of training data.
                     lr, train_summary, train_accuracy, train_loss, _ = \
@@ -276,8 +285,40 @@ def main(unused_argv):
                 ###################################################
                 # TODO: Validate the model on the validation set
                 ###################################################
-                # sess.run(iterator.initializer, feed_dict={filenames: validation_filenames})
-                # for step in range(val_batches):
+                tf.logging.info('--------------------------')
+                tf.logging.info(' Start validation ')
+                tf.logging.info('--------------------------')
+                # Reinitialize iterator with the validation dataset
+                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames})
+                total_val_accuracy = 0
+                validation_count = 0
+                total_conf_matrix = None
+                for step in range(val_batches):
+                    validation_batch_xs, validation_batch_ys = sess.run(next_batch)
+                    # Run a validation step and capture training summaries for TensorBoard
+                    # with the `merged` op.
+                    validation_summary, validation_accuracy, conf_matrix = sess.run(
+                        [learning_rate, summary_op, accuracy, confusion_matrix],
+                        feed_dict={
+                            X: validation_batch_xs,
+                            ground_truth: validation_batch_ys,
+                            is_training: False
+                        })
+
+                    validation_writer.add_summary(validation_summary, num_epoch)
+
+                    total_val_accuracy += validation_accuracy
+                    validation_count += 1
+                    if total_conf_matrix is None:
+                        total_conf_matrix = conf_matrix
+                    else:
+                        total_conf_matrix += conf_matrix
+
+                total_val_accuracy /= validation_count
+
+                tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
+                tf.logging.info('Validation accuracy = %.1f%% (N=%d)' %
+                                (total_val_accuracy * 100, PCAM_VALIDATE_DATA_SIZE))
 
 
                 # Save the model checkpoint periodically.
