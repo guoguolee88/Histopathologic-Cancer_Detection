@@ -69,7 +69,7 @@ class Dataset(object):
         # here.  Since we are not applying any distortions in this
         # example, and the next step expects the image to be flattened
         # into a vector, we don't bother.
-        image = tf.image.central_crop(image, 0.33)
+        image = tf.image.central_crop(image, 0.5)
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
         image = tf.image.rot90(image, k=randint(0,4))
