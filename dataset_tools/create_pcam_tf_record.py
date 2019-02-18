@@ -127,6 +127,9 @@ def main(_):
         tf_example = dict_to_tf_example(image, FLAGS.dataset_dir, label_map_dict)
         writer.write(tf_example.SerializeToString())
 
+        if idx > 50000:
+            break
+
     writer.close()
 
 

@@ -8,7 +8,7 @@ import os
 import cv2
 import numpy as np
 
-from slim.nets import resnet_v2
+from slim.nets import inception_v4
 
 import data
 from utils import train_utils
@@ -64,11 +64,11 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_101.ckpt',
+                    './pre-trained/inception_v4.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    'resnet_v2_101/logits',
+                    'InceptionV4/AuxLogits,InceptionV4/logits',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
@@ -83,7 +83,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_101',
+                    'InceptionV4',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -104,7 +104,7 @@ flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
-PCAM_TRAIN_DATA_SIZE = 20000
+PCAM_TRAIN_DATA_SIZE = 50000
 PCAM_VALIDATE_DATA_SIZE = 2011
 
 
@@ -123,12 +123,15 @@ def main(unused_argv):
         X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool)
-        # dropout_keep_prob = tf.placeholder(tf.float32, [])
+        dropout_keep_prob = tf.placeholder(tf.float32, [])
         # learning_rate = tf.placeholder(tf.float32, [])
 
-        with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+        with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
             logits, end_points = \
-                resnet_v2.resnet_v2_101(X, num_classes=num_classes)
+                inception_v4.inception_v4(X,
+                                          num_classes=num_classes,
+                                          is_training=is_training,
+                                          dropout_keep_prob=dropout_keep_prob)
 
         # Print name and shape of each tensor.
         tf.logging.info("++++++++++++++++++++++++++++++++++")
@@ -275,7 +278,8 @@ def main(unused_argv):
                                      X: train_batch_xs,
                                      ground_truth: train_batch_ys,
                                      # learning_rate:FLAGS.base_learning_rate,
-                                     is_training: True
+                                     is_training: True,
+                                     dropout_keep_prob: 0.5
                                  })
 
                     train_writer.add_summary(train_summary, num_epoch)
@@ -302,7 +306,8 @@ def main(unused_argv):
                         feed_dict={
                             X: validation_batch_xs,
                             ground_truth: validation_batch_ys,
-                            is_training: False
+                            is_training: False,
+                            dropout_keep_prob: 1
                         })
 
                     validation_writer.add_summary(validation_summary, num_epoch)
