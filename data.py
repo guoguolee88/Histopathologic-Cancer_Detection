@@ -64,11 +64,15 @@ class Dataset(object):
 
 
     def augment(self, image, label):
-        """Placeholder for data augmentation."""
-        # OPTIONAL: Could reshape into a 28x28 image and apply distortions
-        # here.  Since we are not applying any distortions in this
-        # example, and the next step expects the image to be flattened
-        # into a vector, we don't bother.
+        """Placeholder for data augmentation.
+        # AUGMENTATION VARIABLES
+        CROP_SIZE = 90          # final size after crop
+        RANDOM_ROTATION = 3    # range (0-180), 180 allows all rotation variations, 0=no change
+        RANDOM_SHIFT = 2        # center crop shift in x and y axes, 0=no change. This cannot be more than (ORIGINAL_SIZE - CROP_SIZE)//2
+        RANDOM_BRIGHTNESS = 7  # range (0-100), 0=no change
+        RANDOM_CONTRAST = 5    # range (0-100), 0=no change
+        RANDOM_90_DEG_TURN = 1  # 0 or 1= random turn to left or right
+        """
         image = tf.image.central_crop(image, 0.5)
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
