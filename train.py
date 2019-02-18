@@ -333,6 +333,5 @@ def main(unused_argv):
                     saver.save(sess, checkpoint_path, global_step=num_epoch)
 
 
-
 if __name__ == '__main__':
     tf.app.run()

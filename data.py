@@ -5,6 +5,7 @@ from __future__ import print_function
 import tensorflow as tf
 
 import random
+import numpy as np
 
 
 class Dataset(object):
@@ -89,6 +90,7 @@ class Dataset(object):
 
     def normalize(self, image, label):
         # """Convert `image` from [0, 255] -> [-0.5, 0.5] floats."""
-        image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
-        # image = tf.image.per_image_standardization(image)
+        # image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
+        # TODO: `image = (image - mean) / std` with `mean` and `std` calculated over the entire dataset.
+        image = tf.image.per_image_standardization(image)
         return image, label
