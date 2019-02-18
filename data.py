@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from random import randint
+import random
 
 
 class Dataset(object):
@@ -72,7 +72,7 @@ class Dataset(object):
         image = tf.image.central_crop(image, 0.5)
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
-        image = tf.image.rot90(image, k=randint(0,4))
+        image = tf.image.rot90(image, k=random.randint(0,4))
         image = tf.image.random_brightness(image, max_delta=0.2)
         image = tf.image.random_contrast(image, lower=0.7, upper=1.0)
         image = tf.image.random_hue(image, max_delta=0.08)

@@ -4,7 +4,14 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+from random import randint
 
+'''
+ Note that if we apply augmentation here, 
+ augmentations will also be applied when we are predicting (inference). 
+ This is called test time augmentation (TTA) and it can improve our results 
+ if we run inference multiple times for each image and average out the predictions.
+'''
 class Dataset(object):
     """
     Wrapper class around the new Tensorflows dataset pipeline.
@@ -13,6 +20,8 @@ class Dataset(object):
     """
 
     def __init__(self, tfrecord_path, batch_size, height, width):
+        self.original_size = 96
+
         self.resize_h = height
         self.resize_w = width
 
@@ -51,7 +60,7 @@ class Dataset(object):
 
         # Convert from a scalar string tensor to a float32 tensor with shape
         image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
-        image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
+        image = tf.image.resize_images(image_decoded, [self.original_size, self.original_size])
 
         filename = features['image/filename']
 
@@ -65,6 +74,14 @@ class Dataset(object):
         # example, and the next step expects the image to be flattened
         # into a vector, we don't bother.
         image = tf.image.central_crop(image, 0.5)
+        image = tf.image.random_flip_up_down(image)
+        image = tf.image.random_flip_left_right(image)
+        image = tf.image.rot90(image, k=randint(0, 4))
+        image = tf.image.random_brightness(image, max_delta=0.2)
+        image = tf.image.random_contrast(image, lower=0.7, upper=1.0)
+        image = tf.image.random_hue(image, max_delta=0.08)
+        image = tf.image.random_saturation(image, lower=0.7, upper=1.0)
+        # TODO: tf.pad ??
         image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
         return image, filename
