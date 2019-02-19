@@ -13,6 +13,7 @@ import csv
 import eval_data
 
 from slim.nets import resnet_v2
+from slim.nets import inception_v4
 
 slim = tf.contrib.slim
 
@@ -29,9 +30,12 @@ def main(_):
 
     X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
 
-    with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+    with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
         logits, _ = \
-            resnet_v2.resnet_v2_101(X, num_classes=num_classes, is_training=False)
+            inception_v4.inception_v4(X,
+                                      num_classes=num_classes,
+                                      is_training=False,
+                                      dropout_keep_prob=1)
 
     # prediction = tf.argmax(logits, 1, name='prediction')
     prediction = tf.nn.softmax(logits)
@@ -156,7 +160,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_architecture',
         type=str,
-        default='resnet_v2_101',
+        default='InceptionV4',
         help='What model architecture to use')
     parser.add_argument(
         '--height',
