@@ -257,19 +257,19 @@ def main(unused_argv):
                 for step in range(tr_batches):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
 
-                    # Verify image
-                    # assert not np.any(np.isnan(train_batch_xs))
-                    n_batch = train_batch_xs.shape[0]
-                    # n_view = train_batch_xs.shape[1]
-                    for i in range(n_batch):
-                        img = train_batch_xs[i]
-                        # scipy.misc.toimage(img).show()
-                        # Or
-                        img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
-                        cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
-                        # cv2.imshow(str(train_batch_ys[idx]), img)
-                        cv2.waitKey(100)
-                        cv2.destroyAllWindows()
+                    # # Verify image
+                    # # assert not np.any(np.isnan(train_batch_xs))
+                    # n_batch = train_batch_xs.shape[0]
+                    # # n_view = train_batch_xs.shape[1]
+                    # for i in range(n_batch):
+                    #     img = train_batch_xs[i]
+                    #     # scipy.misc.toimage(img).show()
+                    #     # Or
+                    #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                    #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
+                    #     # cv2.imshow(str(train_batch_ys[idx]), img)
+                    #     cv2.waitKey(100)
+                    #     cv2.destroyAllWindows()
 
                     # # Run the graph with this batch of training data.
                     lr, train_summary, train_accuracy, train_loss, _ = \
