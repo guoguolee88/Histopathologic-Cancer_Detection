@@ -175,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--labels',
         type=str,
-        default='0,1',
+        default='negative,positive',
         help='Labels to use', )
     parser.add_argument(
         '--batch_size',
