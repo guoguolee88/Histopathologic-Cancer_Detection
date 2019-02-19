@@ -96,9 +96,9 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 64, 'batch size')
-flags.DEFINE_integer('height', 224, 'height')
-flags.DEFINE_integer('width', 224, 'width')
+flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_integer('height', 112, 'height')
+flags.DEFINE_integer('width', 112, 'width')
 flags.DEFINE_string('labels', 'negative,positive', 'Labels to use')
 
 
@@ -279,7 +279,7 @@ def main(unused_argv):
                                      ground_truth: train_batch_ys,
                                      # learning_rate:FLAGS.base_learning_rate,
                                      is_training: True,
-                                     dropout_keep_prob: 0.5
+                                     dropout_keep_prob: 0.8
                                  })
 
                     train_writer.add_summary(train_summary, num_epoch)
