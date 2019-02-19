@@ -12,7 +12,7 @@ import logging
 import os
 import random
 
-import PIL.Image
+from PIL import Image, ImageStat
 import tensorflow as tf
 
 from dataset_tools import dataset_util
@@ -72,17 +72,17 @@ def dict_to_tf_example(image_name,
     """
     full_path = os.path.join(dataset_directory, image_subdirectory, image_name)
     with tf.gfile.GFile(full_path, 'rb') as fid:
-        encoded_png = fid.read()
-    encoded_png_io = io.BytesIO(encoded_png)
-    image = PIL.Image.open(encoded_png_io)
+        encoded = fid.read()
+    encoded_io = io.BytesIO(encoded)
+    image = Image.open(encoded_io)
     width, height = image.size
     format = image.format
-    image_stat = PIL.ImageStat.Stat(image)
+    image_stat = ImageStat.Stat(image)
     mean = image_stat.mean
     std = image_stat.stddev
     if image.format != 'PNG':
         raise ValueError('Image format not PNG')
-    key = hashlib.sha256(encoded_png).hexdigest()
+    key = hashlib.sha256(encoded).hexdigest()
     if image_subdirectory.lower() == TRAIN:
         label = int(label_map_dict[image_name[:-4]])
     else:
@@ -94,7 +94,7 @@ def dict_to_tf_example(image_name,
         'image/filename': dataset_util.bytes_feature(image_name.encode('utf8')),
         'image/source_id': dataset_util.bytes_feature(image_name.encode('utf8')),
         'image/key/sha256': dataset_util.bytes_feature(key.encode('utf8')),
-        'image/encoded': dataset_util.bytes_feature(encoded_png),
+        'image/encoded': dataset_util.bytes_feature(encoded),
         'image/format': dataset_util.bytes_feature(format.encode('utf8')),
         'image/label': dataset_util.int64_feature(label),
         # 'image/text': dataset_util.bytes_feature('label_text'.encode('utf8'))

@@ -29,7 +29,7 @@ class Dataset(object):
         # of the dataset.
         dataset = dataset.map(self.decode, num_parallel_calls=8)
         dataset = dataset.map(self.augment, num_parallel_calls=8)
-        dataset = dataset.map(self.normalize, num_parallel_calls=8)
+        # dataset = dataset.map(self.normalize, num_parallel_calls=8)
 
         # Prefetches a batch at a time to smooth out the time taken to load input
         # files for shuffling and processing.
@@ -79,9 +79,9 @@ class Dataset(object):
         image = tf.image.random_flip_left_right(image)
         image = tf.image.rot90(image, k=random.randint(0,4))
         image = tf.image.random_brightness(image, max_delta=0.2)
-        image = tf.image.random_contrast(image, lower=0.7, upper=1.0)
-        image = tf.image.random_hue(image, max_delta=0.08)
-        image = tf.image.random_saturation(image, lower=0.7, upper=1.0)
+        image = tf.image.random_contrast(image, lower=0.1, upper=1)
+        # image = tf.image.random_hue(image, max_delta=0.08)
+        # image = tf.image.random_saturation(image, lower=0, upper=0.2)
         # TODO: tf.pad ??
         image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
