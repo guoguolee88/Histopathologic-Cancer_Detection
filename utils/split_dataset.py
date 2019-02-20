@@ -79,10 +79,10 @@ def main(unused_argv):
     train_path = os.path.join(FLAGS.dataset_path, 'train')
     validate_path = os.path.join(FLAGS.dataset_path, 'validate')
 
-    if os.path.exists(train_path) == False:
+    if not os.path.exists(train_path):
         os.makedirs(train_path)
 
-    if os.path.exists(validate_path) == False:
+    if not os.path.exists(validate_path):
         os.makedirs(validate_path)
 
     # train_positive = train[train['label'] == 1]['id'].tolist()
