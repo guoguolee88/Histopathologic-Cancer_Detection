@@ -13,7 +13,6 @@ import csv
 import eval_data
 
 from slim.nets import resnet_v2
-from slim.nets import inception_v4
 
 slim = tf.contrib.slim
 
@@ -30,12 +29,11 @@ def main(_):
 
     X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
 
-    with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
+    with slim.arg_scope(resnet_v2.resnet_v2_arg_scope()):
         logits, _ = \
-            inception_v4.inception_v4(X,
-                                      num_classes=num_classes,
-                                      is_training=False,
-                                      dropout_keep_prob=1)
+            resnet_v2.resnet_v2_50(X,
+                                   num_classes=num_classes,
+                                   is_training=False)
 
     # prediction = tf.argmax(logits, 1, name='prediction')
     prediction = tf.nn.softmax(logits)
@@ -160,17 +158,17 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_architecture',
         type=str,
-        default='InceptionV4',
+        default='resnet_v2_50',
         help='What model architecture to use')
     parser.add_argument(
         '--height',
         type=int,
-        default=112,  # nasnet, mobilenet
+        default=96,
         help='how do you want image resize height.')
     parser.add_argument(
         '--width',
         type=int,
-        default=112,  # nasnet, mobilenet
+        default=96,
         help='how do you want image resize width.')
     parser.add_argument(
         '--labels',
@@ -180,7 +178,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=128,
+        default=256,
         help='How many items to predict with at once', )
     parser.add_argument(
         '--result_dir',

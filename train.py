@@ -8,7 +8,7 @@ import os
 import cv2
 import numpy as np
 
-from slim.nets import inception_v4
+from slim.nets import resnet_v2
 
 import data
 from utils import train_utils
@@ -64,26 +64,24 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/inception_v4.ckpt',
+                    './pre-trained/resnet_v2_50.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    'InceptionV4/AuxLogits,InceptionV4/logits',
+                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    # 'ssd_300_vgg/block4_box, ssd_300_vgg/block7_box, \
-                    #  ssd_300_vgg/block8_box, ssd_300_vgg/block9_box, \
-                    #  ssd_300_vgg/block10_box, ssd_300_vgg/block11_box',
-                    None,
+                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    # None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
 flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'InceptionV4',
+                    'resnet_v2',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -94,11 +92,11 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 120,
+flags.DEFINE_integer('how_many_training_epochs', 300,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 128, 'batch size')
-flags.DEFINE_integer('height', 112, 'height')
-flags.DEFINE_integer('width', 112, 'width')
+flags.DEFINE_integer('batch_size', 256, 'batch size')
+flags.DEFINE_integer('height', 96, 'height')
+flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
@@ -123,15 +121,14 @@ def main(unused_argv):
         X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool)
-        dropout_keep_prob = tf.placeholder(tf.float32, [])
+        # dropout_keep_prob = tf.placeholder(tf.float32, [])
         # learning_rate = tf.placeholder(tf.float32, [])
 
-        with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
+        with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
-                inception_v4.inception_v4(X,
-                                          num_classes=num_classes,
-                                          is_training=is_training,
-                                          dropout_keep_prob=dropout_keep_prob)
+                resnet_v2.resnet_v2_50(X,
+                                       num_classes=num_classes,
+                                       is_training=is_training)
 
         # Print name and shape of each tensor.
         tf.logging.info("++++++++++++++++++++++++++++++++++")
@@ -140,12 +137,12 @@ def main(unused_argv):
         for k, v in end_points.items():
             tf.logging.info('name = %s, shape = %s' % (v.name, v.get_shape()))
 
-        # Print name and shape of parameter nodes  (values not yet initialized)
-        tf.logging.info("++++++++++++++++++++++++++++++++++")
-        tf.logging.info("Parameters")
-        tf.logging.info("++++++++++++++++++++++++++++++++++")
-        for v in slim.get_model_variables():
-            tf.logging.info('name = %s, shape = %s' % (v.name, v.get_shape()))
+        # # Print name and shape of parameter nodes  (values not yet initialized)
+        # tf.logging.info("++++++++++++++++++++++++++++++++++")
+        # tf.logging.info("Parameters")
+        # tf.logging.info("++++++++++++++++++++++++++++++++++")
+        # for v in slim.get_model_variables():
+        #     tf.logging.info('name = %s, shape = %s' % (v.name, v.get_shape()))
 
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
@@ -278,8 +275,7 @@ def main(unused_argv):
                                      X: train_batch_xs,
                                      ground_truth: train_batch_ys,
                                      # learning_rate:FLAGS.base_learning_rate,
-                                     is_training: True,
-                                     dropout_keep_prob: 0.8
+                                     is_training: True
                                  })
 
                     train_writer.add_summary(train_summary, num_epoch)
@@ -306,8 +302,7 @@ def main(unused_argv):
                         feed_dict={
                             X: validation_batch_xs,
                             ground_truth: validation_batch_ys,
-                            is_training: False,
-                            dropout_keep_prob: 1
+                            is_training: False
                         })
 
                     validation_writer.add_summary(validation_summary, num_epoch)
