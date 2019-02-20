@@ -99,13 +99,13 @@ flags.DEFINE_integer('how_many_training_epochs', 120,
 flags.DEFINE_integer('batch_size', 128, 'batch size')
 flags.DEFINE_integer('height', 112, 'height')
 flags.DEFINE_integer('width', 112, 'width')
-flags.DEFINE_string('labels', 'negative,positive', 'Labels to use')
+flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
-PCAM_TRAIN_DATA_SIZE = 50000
-PCAM_VALIDATE_DATA_SIZE = 2011
+PCAM_TRAIN_DATA_SIZE = 142400
+PCAM_VALIDATE_DATA_SIZE = 35600
 
 
 def main(unused_argv):
