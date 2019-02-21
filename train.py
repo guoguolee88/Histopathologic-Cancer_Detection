@@ -94,9 +94,9 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 256, 'batch size')
-flags.DEFINE_integer('height', 96, 'height')
-flags.DEFINE_integer('width', 96, 'width')
+flags.DEFINE_integer('batch_size', 64, 'batch size')
+flags.DEFINE_integer('height', 224, 'height')
+flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
