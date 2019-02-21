@@ -81,7 +81,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2',
+                    'resnet_v2_50',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -92,11 +92,11 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 300,
+flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 256, 'batch size')
-flags.DEFINE_integer('height', 96, 'height')
-flags.DEFINE_integer('width', 96, 'width')
+flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_integer('height', 112, 'height')
+flags.DEFINE_integer('width', 112, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 

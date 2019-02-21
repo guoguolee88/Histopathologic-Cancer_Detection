@@ -34,8 +34,8 @@ flags.DEFINE_string('output_path',
                     '/home/ace19/dl_data/histopathologic_cancer_detection/' + TEST + '.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('label_map_path',
-                    # '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
-                    None,
+                    '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
+                    # None,
                     'Path to label map')
 
 FLAGS = flags.FLAGS
