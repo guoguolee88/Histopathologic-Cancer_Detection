@@ -29,7 +29,7 @@ def main(_):
 
     X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
 
-    with slim.arg_scope(resnet_v2.resnet_v2_arg_scope()):
+    with slim.arg_scope(resnet_v2.resnet_arg_scope()):
         logits, _ = \
             resnet_v2.resnet_v2_50(X,
                                    num_classes=num_classes,
