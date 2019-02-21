@@ -75,7 +75,8 @@ class Dataset(object):
         RANDOM_90_DEG_TURN = 1  # 0 or 1= random turn to left or right
         """
         image = tf.image.central_crop(image, 0.5)
-        paddings = tf.constant([[56,56], [56,56], [0,0]])
+        # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
+        paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
         image = tf.pad(image, paddings, "CONSTANT")
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
