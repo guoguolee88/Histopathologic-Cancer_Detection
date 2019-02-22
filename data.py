@@ -29,7 +29,7 @@ class Dataset(object):
         # of the dataset.
         dataset = dataset.map(self.decode, num_parallel_calls=8)
         dataset = dataset.map(self.augment, num_parallel_calls=8)
-        # dataset = dataset.map(self.normalize, num_parallel_calls=8)
+        dataset = dataset.map(self.normalize, num_parallel_calls=8)
 
         # Prefetches a batch at a time to smooth out the time taken to load input
         # files for shuffling and processing.
@@ -55,8 +55,12 @@ class Dataset(object):
             })
 
         # Convert from a scalar string tensor to a float32 tensor with shape
-        image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
-        image = tf.image.resize_images(image_decoded, [self.original_size, self.original_size])
+        # image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
+        # image = tf.image.resize_images(image_decoded, [self.original_size, self.original_size])
+        image_decoded = tf.image.decode_jpeg(features['image/encoded'], channels=3)
+        image = tf.image.resize_images(image_decoded,
+                                       [self.resize_h, self.resize_w],
+                                       method=tf.image.ResizeMethod.BICUBIC)
 
         # Convert label from a scalar uint8 tensor to an int32 scalar.
         label = tf.cast(features['image/label'], tf.int64)
@@ -74,23 +78,23 @@ class Dataset(object):
         RANDOM_CONTRAST = 5    # range (0-100), 0=no change
         RANDOM_90_DEG_TURN = 1  # 0 or 1= random turn to left or right
         """
-        image = tf.image.central_crop(image, 0.5)
+        # image = tf.image.central_crop(image, 0.5)
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
         image = tf.image.rot90(image, k=random.randint(0,4))
         image = tf.image.random_brightness(image, max_delta=0.2)
-        image = tf.image.random_contrast(image, lower=0.1, upper=1)
-        image = tf.image.random_hue(image, max_delta=0.08)
-        image = tf.image.random_saturation(image, lower=0.1, upper=1)
+        # image = tf.image.random_contrast(image, lower=0.1, upper=0.5)
+        # image = tf.image.random_hue(image, max_delta=0.08)
+        # image = tf.image.random_saturation(image, lower=0.1, upper=1)
         # TODO: tf.pad ??
-        image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
+        # image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
         return image, label
 
 
     def normalize(self, image, label):
         # """Convert `image` from [0, 255] -> [-0.5, 0.5] floats."""
-        image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
+        # image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
         # TODO: `image = (image - mean) / std` with `mean` and `std` calculated over the entire dataset.
-        # image = tf.image.per_image_standardization(image)
+        image = tf.image.per_image_standardization(image)
         return image, label

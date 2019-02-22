@@ -92,18 +92,23 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 300,
+flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 256, 'batch size')
-flags.DEFINE_integer('height', 96, 'height')
-flags.DEFINE_integer('width', 96, 'width')
-flags.DEFINE_string('labels', '0,1', 'Labels to use')
+flags.DEFINE_integer('batch_size', 32, 'batch size')
+flags.DEFINE_integer('height', 224, 'height')
+flags.DEFINE_integer('width', 224, 'width')
+# flags.DEFINE_string('labels', '0,1', 'Labels to use')
+flags.DEFINE_string('labels',
+                    'earth,heaven,good',
+                    'Labels to use')
 
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
-PCAM_TRAIN_DATA_SIZE = 142400
-PCAM_VALIDATE_DATA_SIZE = 35600
+# PCAM_TRAIN_DATA_SIZE = 142400
+# PCAM_VALIDATE_DATA_SIZE = 35600
+PCAM_TRAIN_DATA_SIZE = 1650
+PCAM_VALIDATE_DATA_SIZE = 300
 
 
 def main(unused_argv):
