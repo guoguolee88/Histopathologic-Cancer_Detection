@@ -10,11 +10,11 @@ FLAGS = None
 
 
 def main(_):
-    dir = os.path.join(FLAGS.target_dir, 'train_ori')
+    dir = os.path.join(FLAGS.target_dir, 'raw_test')
     target_list = os.listdir(dir)
     for target in target_list:
         path = os.path.join(dir, target)
-        outfile = os.path.join(FLAGS.target_dir, 'train', target[:-4] + '.png')
+        outfile = os.path.join(FLAGS.target_dir, 'test', target[:-4] + '.png')
         try:
             im = Image.open(path)
             print("Generating png for %s" % target)

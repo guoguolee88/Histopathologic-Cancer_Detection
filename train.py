@@ -73,15 +73,15 @@ flags.DEFINE_string('checkpoint_exclude_scopes',
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    # 'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
-                    None,
+                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    # None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
 flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2',
+                    'resnet_v2_50',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -94,21 +94,16 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 32, 'batch size')
-flags.DEFINE_integer('height', 224, 'height')
-flags.DEFINE_integer('width', 224, 'width')
-# flags.DEFINE_string('labels', '0,1', 'Labels to use')
-flags.DEFINE_string('labels',
-                    'earth,heaven,good',
-                    'Labels to use')
+flags.DEFINE_integer('batch_size', 256, 'batch size')
+flags.DEFINE_integer('height', 96, 'height')
+flags.DEFINE_integer('width', 96, 'width')
+flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
-# PCAM_TRAIN_DATA_SIZE = 142400
-# PCAM_VALIDATE_DATA_SIZE = 35600
-PCAM_TRAIN_DATA_SIZE = 1650
-PCAM_VALIDATE_DATA_SIZE = 300
+PCAM_TRAIN_DATA_SIZE = 142400
+PCAM_VALIDATE_DATA_SIZE = 35600
 
 
 def main(unused_argv):
@@ -180,7 +175,8 @@ def main(unused_argv):
             FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
             FLAGS.training_number_of_steps, FLAGS.learning_power,
             FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
-        optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
+        # optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
+        optimizer = tf.train.AdamOptimizer(learning_rate)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
 
         for variable in slim.get_model_variables():

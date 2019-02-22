@@ -55,12 +55,8 @@ class Dataset(object):
             })
 
         # Convert from a scalar string tensor to a float32 tensor with shape
-        # image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
-        # image = tf.image.resize_images(image_decoded, [self.original_size, self.original_size])
-        image_decoded = tf.image.decode_jpeg(features['image/encoded'], channels=3)
-        image = tf.image.resize_images(image_decoded,
-                                       [self.resize_h, self.resize_w],
-                                       method=tf.image.ResizeMethod.BICUBIC)
+        image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
+        image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
 
         # Convert label from a scalar uint8 tensor to an int32 scalar.
         label = tf.cast(features['image/label'], tf.int64)
@@ -78,15 +74,17 @@ class Dataset(object):
         RANDOM_CONTRAST = 5    # range (0-100), 0=no change
         RANDOM_90_DEG_TURN = 1  # 0 or 1= random turn to left or right
         """
-        # image = tf.image.central_crop(image, 0.5)
+        image = tf.image.central_crop(image, 0.5)
+        # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
+        paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
+        image = tf.pad(image, paddings, "CONSTANT")
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
         image = tf.image.rot90(image, k=random.randint(0,4))
         image = tf.image.random_brightness(image, max_delta=0.2)
-        # image = tf.image.random_contrast(image, lower=0.1, upper=0.5)
-        # image = tf.image.random_hue(image, max_delta=0.08)
-        # image = tf.image.random_saturation(image, lower=0.1, upper=1)
-        # TODO: tf.pad ??
+        # image = tf.image.random_contrast(image, lower=0.1, upper=1)
+        image = tf.image.random_hue(image, max_delta=0.08)
+        image = tf.image.random_saturation(image, lower=0.1, upper=1)
         # image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
         return image, label
