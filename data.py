@@ -5,7 +5,6 @@ from __future__ import print_function
 import tensorflow as tf
 
 import random
-import numpy as np
 
 
 class Dataset(object):
