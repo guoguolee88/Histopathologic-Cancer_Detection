@@ -118,9 +118,9 @@ def main(unused_argv):
     with tf.Graph().as_default() as graph:
         global_step = tf.train.get_or_create_global_step()
 
-        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
+        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3], name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
-        is_training = tf.placeholder(tf.bool)
+        is_training = tf.placeholder(tf.bool, name='is_training')
         # dropout_keep_prob = tf.placeholder(tf.float32, [])
         # learning_rate = tf.placeholder(tf.float32, [])
 
@@ -151,7 +151,7 @@ def main(unused_argv):
         correct_prediction = tf.equal(prediction, ground_truth)
         confusion_matrix = tf.confusion_matrix(
             ground_truth, prediction, num_classes=num_classes)
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
         summaries.add(tf.summary.scalar('accuracy', accuracy))
 
         # Define loss
@@ -195,9 +195,13 @@ def main(unused_argv):
             grads_and_vars = slim.learning.multiply_gradients(
                 grads_and_vars, grad_mult)
 
+        # Gradient clipping
+        clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
+        # gradients, variables = zip(*optimizer.compute_gradients(loss))
+        # gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+
         # Create gradient update op.
-        grad_updates = optimizer.apply_gradients(
-            grads_and_vars, global_step=global_step)
+        grad_updates = optimizer.apply_gradients(clipped_gvs, global_step=global_step)
         update_ops.append(grad_updates)
         update_op = tf.group(*update_ops)
         with tf.control_dependencies([update_op]):
@@ -261,8 +265,7 @@ def main(unused_argv):
                     # # n_view = train_batch_xs.shape[1]
                     # for i in range(n_batch):
                     #     img = train_batch_xs[i]
-                    #     # scipy.misc.toimage(img).show()
-                    #     # Or
+                    #     # scipy.misc.toimage(img).show() Or
                     #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
                     #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
                     #     # cv2.imshow(str(train_batch_ys[idx]), img)

@@ -82,9 +82,9 @@ class Dataset(object):
         image = tf.image.random_flip_left_right(image)
         image = tf.image.rot90(image, k=random.randint(0,4))
         image = tf.image.random_brightness(image, max_delta=0.2)
-        # image = tf.image.random_contrast(image, lower=0.1, upper=1)
-        image = tf.image.random_hue(image, max_delta=0.08)
-        image = tf.image.random_saturation(image, lower=0.1, upper=1)
+        image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
+        # image = tf.image.random_hue(image, max_delta=0.04)
+        # image = tf.image.random_saturation(image, lower=0.1, upper=1)
         # image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
         return image, label
@@ -92,7 +92,7 @@ class Dataset(object):
 
     def normalize(self, image, label):
         # """Convert `image` from [0, 255] -> [-0.5, 0.5] floats."""
-        image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
+        image = tf.cast(image, tf.float32) * (1. / 255) # - 0.5
         # TODO: `image = (image - mean) / std` with `mean` and `std` calculated over the entire dataset.
         # image = tf.image.per_image_standardization(image)
         return image, label
