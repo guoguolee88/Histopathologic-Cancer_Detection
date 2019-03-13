@@ -75,8 +75,8 @@ class Dataset(object):
         """
         image = tf.image.central_crop(image, 0.5)
         # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
-        # paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
-        paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
+        paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
+        # paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
         image = tf.pad(image, paddings, "CONSTANT")
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
@@ -92,7 +92,7 @@ class Dataset(object):
 
     def normalize(self, image, label):
         # """Convert `image` from [0, 255] -> [-0.5, 0.5] floats."""
-        image = tf.cast(image, tf.float32) * (1. / 255) # - 0.5
+        image = tf.cast(image, tf.float32) * (1. / 255) - 0.5
         # TODO: `image = (image - mean) / std` with `mean` and `std` calculated over the entire dataset.
         # image = tf.image.per_image_standardization(image)
         return image, label

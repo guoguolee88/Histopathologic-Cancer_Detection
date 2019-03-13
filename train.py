@@ -94,9 +94,9 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 128, 'batch size')
-flags.DEFINE_integer('height', 112, 'height')
-flags.DEFINE_integer('width', 112, 'width')
+flags.DEFINE_integer('batch_size', 256, 'batch size')
+flags.DEFINE_integer('height', 96, 'height')
+flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
@@ -196,13 +196,13 @@ def main(unused_argv):
         #         grads_and_vars, grad_mult)
 
         # Gradient clipping
-        clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
+        # clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
         # gradients, variables = zip(*optimizer.compute_gradients(loss))
         # gradients, _ = tf.clip_by_global_norm(grads_and_vars[0], 5.0)
         # optimize = optimizer.apply_gradients(zip(gradients, grads_and_vars[1]))
 
         # Create gradient update op.
-        grad_updates = optimizer.apply_gradients(clipped_gvs, global_step=global_step)
+        grad_updates = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
         update_ops.append(grad_updates)
         update_op = tf.group(*update_ops)
         with tf.control_dependencies([update_op]):
