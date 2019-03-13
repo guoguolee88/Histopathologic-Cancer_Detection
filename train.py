@@ -197,6 +197,7 @@ def main(unused_argv):
 
         # Gradient clipping
         # clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
+        # Otherwise ->
         # gradients, variables = zip(*optimizer.compute_gradients(loss))
         # gradients, _ = tf.clip_by_global_norm(grads_and_vars[0], 5.0)
         # optimize = optimizer.apply_gradients(zip(gradients, grads_and_vars[1]))
