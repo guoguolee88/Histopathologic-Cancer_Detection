@@ -22,7 +22,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
-flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_50.ckpt',
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_101.ckpt',
                     'Name to save checkpoint file')
 flags.DEFINE_integer('log_steps', 10,
                      'Display logging information at every log_steps.')
@@ -64,16 +64,16 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_50.ckpt',
+                    './pre-trained/resnet_v2_101.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
                     # None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
@@ -81,7 +81,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_50',
+                    'resnet_v2_101',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -126,7 +126,7 @@ def main(unused_argv):
 
         with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
-                resnet_v2.resnet_v2_50(X,
+                resnet_v2.resnet_v2_101(X,
                                        num_classes=num_classes,
                                        is_training=is_training)
 
@@ -175,8 +175,8 @@ def main(unused_argv):
             FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
             FLAGS.training_number_of_steps, FLAGS.learning_power,
             FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
-        # optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
-        optimizer = tf.train.AdamOptimizer(learning_rate)
+        optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
+        # optimizer = tf.train.AdamOptimizer(learning_rate)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
 
         for variable in slim.get_model_variables():
@@ -186,19 +186,20 @@ def main(unused_argv):
         total_loss = tf.check_numerics(total_loss, 'Loss is inf or nan.')
         summaries.add(tf.summary.scalar('total_loss', total_loss))
 
-        # Modify the gradients for biases and last layer variables.
-        last_layers = train_utils.get_extra_layer_scopes(
-            FLAGS.last_layers_contain_logits_only)
-        grad_mult = train_utils.get_model_gradient_multipliers(
-            last_layers, FLAGS.last_layer_gradient_multiplier)
-        if grad_mult:
-            grads_and_vars = slim.learning.multiply_gradients(
-                grads_and_vars, grad_mult)
+        # # Modify the gradients for biases and last layer variables.
+        # last_layers = train_utils.get_extra_layer_scopes(
+        #     FLAGS.last_layers_contain_logits_only)
+        # grad_mult = train_utils.get_model_gradient_multipliers(
+        #     last_layers, FLAGS.last_layer_gradient_multiplier)
+        # if grad_mult:
+        #     grads_and_vars = slim.learning.multiply_gradients(
+        #         grads_and_vars, grad_mult)
 
         # Gradient clipping
         clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
         # gradients, variables = zip(*optimizer.compute_gradients(loss))
-        # gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+        # gradients, _ = tf.clip_by_global_norm(grads_and_vars[0], 5.0)
+        # optimize = optimizer.apply_gradients(zip(gradients, grads_and_vars[1]))
 
         # Create gradient update op.
         grad_updates = optimizer.apply_gradients(clipped_gvs, global_step=global_step)

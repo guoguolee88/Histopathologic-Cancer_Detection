@@ -82,8 +82,8 @@ class Dataset(object):
         image = tf.image.rot90(image, k=random.randint(0,4))
         image = tf.image.random_brightness(image, max_delta=0.2)
         image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
-        # image = tf.image.random_hue(image, max_delta=0.04)
-        # image = tf.image.random_saturation(image, lower=0.1, upper=1)
+        image = tf.image.random_hue(image, max_delta=0.08)
+        image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
         # image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
         return image, label

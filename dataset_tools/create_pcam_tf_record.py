@@ -83,7 +83,7 @@ def dict_to_tf_example(image_name,
     if image.format != 'PNG':
         raise ValueError('Image format not PNG')
     key = hashlib.sha256(encoded).hexdigest()
-    if image_subdirectory.lower() == TRAIN:
+    if image_subdirectory.lower() == VALIDATE:
         label = int(label_map_dict[image_name[:-4]])
     else:
         label = -1
