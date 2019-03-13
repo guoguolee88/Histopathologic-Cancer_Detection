@@ -31,7 +31,7 @@ def main(_):
 
     with slim.arg_scope(resnet_v2.resnet_arg_scope()):
         logits, _ = \
-            resnet_v2.resnet_v2_50(X,
+            resnet_v2.resnet_v2_101(X,
                                    num_classes=num_classes,
                                    is_training=False)
 

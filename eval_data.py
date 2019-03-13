@@ -75,7 +75,8 @@ class Dataset(object):
         # into a vector, we don't bother.
         image = tf.image.central_crop(image, 0.5)
         # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
-        paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
+        # paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
+        paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
         image = tf.pad(image, paddings, "CONSTANT")
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)

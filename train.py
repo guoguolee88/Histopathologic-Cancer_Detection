@@ -73,8 +73,8 @@ flags.DEFINE_string('checkpoint_exclude_scopes',
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
-                    # None,
+                    # 'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
+                    None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
 flags.DEFINE_string('checkpoint_model_scope',
