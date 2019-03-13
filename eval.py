@@ -158,17 +158,17 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_architecture',
         type=str,
-        default='resnet_v2_50',
+        default='resnet_v2_101',
         help='What model architecture to use')
     parser.add_argument(
         '--height',
         type=int,
-        default=96,
+        default=112,
         help='how do you want image resize height.')
     parser.add_argument(
         '--width',
         type=int,
-        default=96,
+        default=112,
         help='how do you want image resize width.')
     parser.add_argument(
         '--labels',
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=256,
+        default=128,
         help='How many items to predict with at once', )
     parser.add_argument(
         '--result_dir',
