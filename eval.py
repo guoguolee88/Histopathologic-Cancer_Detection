@@ -163,12 +163,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--height',
         type=int,
-        default=112,
+        default=96,
         help='how do you want image resize height.')
     parser.add_argument(
         '--width',
         type=int,
-        default=112,
+        default=96,
         help='how do you want image resize width.')
     parser.add_argument(
         '--labels',
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=128,
+        default=256,
         help='How many items to predict with at once', )
     parser.add_argument(
         '--result_dir',
