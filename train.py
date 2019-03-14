@@ -198,14 +198,14 @@ def main(unused_argv):
         #         grads_and_vars, grad_mult)
 
         # Gradient clipping
-        # clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
+        clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
         # Otherwise ->
         # gradients, variables = zip(*optimizer.compute_gradients(loss))
         # gradients, _ = tf.clip_by_global_norm(grads_and_vars[0], 5.0)
         # optimize = optimizer.apply_gradients(zip(gradients, grads_and_vars[1]))
 
         # Create gradient update op.
-        grad_updates = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
+        grad_updates = optimizer.apply_gradients(clipped_gvs, global_step=global_step)
         update_ops.append(grad_updates)
         update_op = tf.group(*update_ops)
         with tf.control_dependencies([update_op]):
