@@ -37,9 +37,9 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .002,
+flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 1e-12,
+flags.DEFINE_float('learning_rate_decay_factor', 1e-15,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
@@ -94,11 +94,11 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 150,
+flags.DEFINE_integer('how_many_training_epochs', 90,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 128, 'batch size')
-flags.DEFINE_integer('height', 112, 'height')
-flags.DEFINE_integer('width', 112, 'width')
+flags.DEFINE_integer('batch_size', 32, 'batch size')
+flags.DEFINE_integer('height', 299, 'height')
+flags.DEFINE_integer('width', 299, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
@@ -124,7 +124,7 @@ def main(unused_argv):
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool, name='is_training')
         # dropout_keep_prob = tf.placeholder(tf.float32, [])
-        # learning_rate = tf.placeholder(tf.float32, [])
+        learning_rate = tf.placeholder(tf.float32, [])
 
         with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
             logits, end_points = \
@@ -172,11 +172,11 @@ def main(unused_argv):
         for loss in tf.get_collection(tf.GraphKeys.LOSSES):
             summaries.add(tf.summary.scalar('losses/%s' % loss.op.name, loss))
 
-        learning_rate = train_utils.get_model_learning_rate(
-            FLAGS.learning_policy, FLAGS.base_learning_rate,
-            FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
-            FLAGS.training_number_of_steps, FLAGS.learning_power,
-            FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
+        # learning_rate = train_utils.get_model_learning_rate(
+        #     FLAGS.learning_policy, FLAGS.base_learning_rate,
+        #     FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
+        #     FLAGS.training_number_of_steps, FLAGS.learning_power,
+        #     FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
         # optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
         optimizer = tf.train.AdamOptimizer(learning_rate)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
@@ -282,7 +282,7 @@ def main(unused_argv):
                                  feed_dict={
                                      X: train_batch_xs,
                                      ground_truth: train_batch_ys,
-                                     # learning_rate:FLAGS.base_learning_rate,
+                                     learning_rate: FLAGS.base_learning_rate,
                                      is_training: True
                                  })
 

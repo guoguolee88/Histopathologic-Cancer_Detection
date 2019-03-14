@@ -15,7 +15,7 @@ class Dataset(object):
     """
 
     def __init__(self, tfrecord_path, batch_size, num_epochs, height, width):
-        self.original_size = 96
+        # self.original_size = 96
 
         self.resize_h = height
         self.resize_w = width
@@ -73,10 +73,11 @@ class Dataset(object):
         RANDOM_CONTRAST = 5    # range (0-100), 0=no change
         RANDOM_90_DEG_TURN = 1  # 0 or 1= random turn to left or right
         """
-        image = tf.image.central_crop(image, 0.5)
+        image = tf.image.central_crop(image, 0.4)
         # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
+        paddings = tf.constant([[89, 89], [89, 89], [0, 0]])  # 299
         # paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
-        paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
+        # paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
         image = tf.pad(image, paddings, "CONSTANT")
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
