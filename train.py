@@ -94,7 +94,7 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 90,
+flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
 flags.DEFINE_integer('batch_size', 32, 'batch size')
 flags.DEFINE_integer('height', 299, 'height')
@@ -204,6 +204,9 @@ def main(unused_argv):
         # gradients, _ = tf.clip_by_global_norm(grads_and_vars[0], 5.0)
         # optimize = optimizer.apply_gradients(zip(gradients, grads_and_vars[1]))
 
+        # TensorBoard: How to plot histogram for gradients
+        grad_summ_op = tf.summary.merge([tf.summary.histogram("%s-grad" % g[1].name, g[0]) for g in clipped_gvs])
+
         # Create gradient update op.
         grad_updates = optimizer.apply_gradients(clipped_gvs, global_step=global_step)
         update_ops.append(grad_updates)
@@ -262,7 +265,6 @@ def main(unused_argv):
                 sess.run(iterator.initializer, feed_dict={tfrecord_filenames: train_record_filenames})
                 for step in range(tr_batches):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
-
                     # # Verify image
                     # # assert not np.any(np.isnan(train_batch_xs))
                     # n_batch = train_batch_xs.shape[0]
@@ -276,9 +278,17 @@ def main(unused_argv):
                     #     cv2.waitKey(100)
                     #     cv2.destroyAllWindows()
 
-                    # # Run the graph with this batch of training data.
-                    lr, train_summary, train_accuracy, train_loss, _ = \
-                        sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
+                    # # Run the graph with this batch of training data and learning rate policy.
+                    # lr, train_summary, train_accuracy, train_loss, _ = \
+                    #     sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
+                    #              feed_dict={
+                    #                  X: train_batch_xs,
+                    #                  ground_truth: train_batch_ys,
+                    #                  # learning_rate: FLAGS.base_learning_rate,
+                    #                  is_training: True
+                    #              })
+                    train_summary, train_accuracy, train_loss, grad_vals, _ = \
+                        sess.run([summary_op, accuracy, total_loss, grad_summ_op, train_op],
                                  feed_dict={
                                      X: train_batch_xs,
                                      ground_truth: train_batch_ys,
@@ -287,8 +297,9 @@ def main(unused_argv):
                                  })
 
                     train_writer.add_summary(train_summary, num_epoch)
+                    train_writer.add_summary(grad_vals, num_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.15f, accuracy %.1f%%, loss %f' %
-                                    (num_epoch, step, lr, train_accuracy * 100, train_loss))
+                                    (num_epoch, step, FLAGS.base_learning_rate, train_accuracy * 100, train_loss))
 
                 ###################################################
                 # Validate the model on the validation set
@@ -310,6 +321,7 @@ def main(unused_argv):
                         feed_dict={
                             X: validation_batch_xs,
                             ground_truth: validation_batch_ys,
+                            learning_rate: FLAGS.base_learning_rate,
                             is_training: False
                         })
 
