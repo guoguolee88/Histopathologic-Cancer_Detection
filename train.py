@@ -316,6 +316,13 @@ def main(unused_argv):
                     validation_batch_xs, validation_batch_ys = sess.run(next_batch)
                     # Run a validation step and capture training summaries for TensorBoard
                     # with the `merged` op.
+                    # validation_summary, validation_accuracy, conf_matrix = sess.run(
+                    #     [summary_op, accuracy, confusion_matrix],
+                    #     feed_dict={
+                    #         X: validation_batch_xs,
+                    #         ground_truth: validation_batch_ys,
+                    #         is_training: False
+                    #     })
                     validation_summary, validation_accuracy, conf_matrix = sess.run(
                         [summary_op, accuracy, confusion_matrix],
                         feed_dict={
