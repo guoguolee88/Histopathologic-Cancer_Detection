@@ -31,7 +31,7 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Root Directory to raw PCam dataset.')
 flags.DEFINE_string('output_path',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/' + VALIDATE + '.record',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection/' + TEST + '.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('label_map_path',
                     '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
@@ -55,7 +55,7 @@ def get_label_map_dict(label_map_path):
 def dict_to_tf_example(image_name,
                        dataset_directory,
                        label_map_dict=None,
-                       image_subdirectory=VALIDATE):
+                       image_subdirectory=TEST):
     """
     Args:
       image: a single image name
@@ -83,10 +83,10 @@ def dict_to_tf_example(image_name,
     if image.format != 'PNG':
         raise ValueError('Image format not PNG')
     key = hashlib.sha256(encoded).hexdigest()
-    if image_subdirectory.lower() == VALIDATE:
-        label = int(label_map_dict[image_name[:-4]])
-    else:
+    if image_subdirectory.lower() == 'test':
         label = -1
+    else:
+        label = int(label_map_dict[image_name[:-4]])
 
     example = tf.train.Example(features=tf.train.Features(feature={
         'image/height': dataset_util.int64_feature(height),
@@ -115,7 +115,7 @@ def main(_):
         label_map_dict = get_label_map_dict(FLAGS.label_map_path)
 
     tf.logging.info('Reading from PCam dataset.')
-    dataset_path = os.path.join(FLAGS.dataset_dir, VALIDATE)
+    dataset_path = os.path.join(FLAGS.dataset_dir, TEST)
     filenames = sorted(os.listdir(dataset_path))
     random.seed(RANDOM_SEED)
     random.shuffle(filenames)

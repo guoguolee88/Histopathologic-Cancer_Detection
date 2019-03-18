@@ -26,10 +26,10 @@ FLAGS = flags.FLAGS
 
 
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/validate',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection_ori/test',
                     'Where the dataset reside.')
 flags.DEFINE_string('target_dir',
-                    '/home/ace19/dl_data/hcd_backup/validate',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection/test',
                     'Where the dataset reside.')
 
 
@@ -50,15 +50,15 @@ def main(argv):
         contrast_limited_adaptive_histogram_equalization(img_grayscale, img_name)
 
 
-# # grayscale 이미지만 적용 가능
-# def histogram_equalization_with_opencv(image, name):
-#     equ = cv2.equalizeHist(image)
-#     # image 와 equ 를 수평으로 붙인다.
-#     res = np.hstack((image, equ))
-#     cv2.imshow(name, res)
-#     cv2.waitKey(10000)
-#     cv2.destroyAllWindows()
-#     # _hist_with_opencv(res, name)
+# grayscale 이미지만 적용 가능
+def histogram_equalization_with_opencv(image, name):
+    equ = cv2.equalizeHist(image)
+    # image 와 equ 를 수평으로 붙인다.
+    res = np.hstack((image, equ))
+    cv2.imshow(name, res)
+    cv2.waitKey(10000)
+    cv2.destroyAllWindows()
+    # _hist_with_opencv(res, name)
 
 
 # grayscale 이미지만 적용 가능
