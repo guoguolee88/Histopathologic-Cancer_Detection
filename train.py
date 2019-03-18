@@ -8,6 +8,8 @@ import os
 import cv2
 import numpy as np
 
+from matplotlib import pyplot as plt
+
 from slim.nets import resnet_v2
 from slim.nets import inception_v4
 
@@ -37,15 +39,15 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .001,
+flags.DEFINE_float('base_learning_rate', .0001,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 1e-15,
+flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
 flags.DEFINE_float('learning_power', 0.9,
                    'The power value used in the poly learning policy.')
-flags.DEFINE_float('training_number_of_steps', 30000,
+flags.DEFINE_float('training_number_of_steps', 300000,
                    'The number of steps used for training.')
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
 
@@ -96,9 +98,9 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 32, 'batch size')
-flags.DEFINE_integer('height', 299, 'height')
-flags.DEFINE_integer('width', 299, 'width')
+flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_integer('height', 112, 'height')
+flags.DEFINE_integer('width', 112, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
@@ -120,11 +122,11 @@ def main(unused_argv):
     with tf.Graph().as_default() as graph:
         global_step = tf.train.get_or_create_global_step()
 
-        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3], name='X')
+        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 1], name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool, name='is_training')
         # dropout_keep_prob = tf.placeholder(tf.float32, [])
-        learning_rate = tf.placeholder(tf.float32, [])
+        # learning_rate = tf.placeholder(tf.float32, [])
 
         with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
             logits, end_points = \
@@ -172,11 +174,11 @@ def main(unused_argv):
         for loss in tf.get_collection(tf.GraphKeys.LOSSES):
             summaries.add(tf.summary.scalar('losses/%s' % loss.op.name, loss))
 
-        # learning_rate = train_utils.get_model_learning_rate(
-        #     FLAGS.learning_policy, FLAGS.base_learning_rate,
-        #     FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
-        #     FLAGS.training_number_of_steps, FLAGS.learning_power,
-        #     FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
+        learning_rate = train_utils.get_model_learning_rate(
+            FLAGS.learning_policy, FLAGS.base_learning_rate,
+            FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
+            FLAGS.training_number_of_steps, FLAGS.learning_power,
+            FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
         # optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
         optimizer = tf.train.AdamOptimizer(learning_rate)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
@@ -198,17 +200,17 @@ def main(unused_argv):
         #         grads_and_vars, grad_mult)
 
         # Gradient clipping
-        clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
+        # clipped_gvs = [(tf.clip_by_value(grad, -1., 1.), var) for grad, var in grads_and_vars]
         # Otherwise ->
         # gradients, variables = zip(*optimizer.compute_gradients(loss))
         # gradients, _ = tf.clip_by_global_norm(grads_and_vars[0], 5.0)
         # optimize = optimizer.apply_gradients(zip(gradients, grads_and_vars[1]))
 
         # TensorBoard: How to plot histogram for gradients
-        grad_summ_op = tf.summary.merge([tf.summary.histogram("%s-grad" % g[1].name, g[0]) for g in clipped_gvs])
+        grad_summ_op = tf.summary.merge([tf.summary.histogram("%s-grad" % g[1].name, g[0]) for g in grads_and_vars])
 
         # Create gradient update op.
-        grad_updates = optimizer.apply_gradients(clipped_gvs, global_step=global_step)
+        grad_updates = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
         update_ops.append(grad_updates)
         update_op = tf.group(*update_ops)
         with tf.control_dependencies([update_op]):
@@ -227,8 +229,11 @@ def main(unused_argv):
         # Prepare data
         ###############
         tfrecord_filenames = tf.placeholder(tf.string, shape=[])
-        dataset = data.Dataset(tfrecord_filenames, FLAGS.batch_size, FLAGS.how_many_training_epochs,
-                                  FLAGS.height, FLAGS.width)
+        dataset = data.Dataset(tfrecord_filenames,
+                               FLAGS.batch_size,
+                               FLAGS.how_many_training_epochs,
+                               FLAGS.height,
+                               FLAGS.width)
         iterator = dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
@@ -278,23 +283,23 @@ def main(unused_argv):
                     #     cv2.waitKey(100)
                     #     cv2.destroyAllWindows()
 
-                    # # Run the graph with this batch of training data and learning rate policy.
-                    # lr, train_summary, train_accuracy, train_loss, _ = \
-                    #     sess.run([learning_rate, summary_op, accuracy, total_loss, train_op],
-                    #              feed_dict={
-                    #                  X: train_batch_xs,
-                    #                  ground_truth: train_batch_ys,
-                    #                  # learning_rate: FLAGS.base_learning_rate,
-                    #                  is_training: True
-                    #              })
-                    train_summary, train_accuracy, train_loss, grad_vals, _ = \
-                        sess.run([summary_op, accuracy, total_loss, grad_summ_op, train_op],
+                    # Run the graph with this batch of training data and learning rate policy.
+                    lr, train_summary, train_accuracy, train_loss, grad_vals, _ = \
+                        sess.run([learning_rate, summary_op, accuracy, total_loss, grad_summ_op, train_op],
                                  feed_dict={
                                      X: train_batch_xs,
                                      ground_truth: train_batch_ys,
-                                     learning_rate: FLAGS.base_learning_rate,
+                                     # learning_rate: FLAGS.base_learning_rate,
                                      is_training: True
                                  })
+                    # train_summary, train_accuracy, train_loss, grad_vals, _ = \
+                    #     sess.run([summary_op, accuracy, total_loss, grad_summ_op, train_op],
+                    #              feed_dict={
+                    #                  X: train_batch_xs,
+                    #                  ground_truth: train_batch_ys,
+                    #                  learning_rate: FLAGS.base_learning_rate,
+                    #                  is_training: True
+                    #              })
 
                     train_writer.add_summary(train_summary, num_epoch)
                     train_writer.add_summary(grad_vals, num_epoch)
@@ -328,7 +333,7 @@ def main(unused_argv):
                         feed_dict={
                             X: validation_batch_xs,
                             ground_truth: validation_batch_ys,
-                            learning_rate: FLAGS.base_learning_rate,
+                            # learning_rate: FLAGS.base_learning_rate,
                             is_training: False
                         })
 
