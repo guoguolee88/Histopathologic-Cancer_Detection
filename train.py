@@ -39,9 +39,9 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0001,
+flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
+flags.DEFINE_float('learning_rate_decay_factor', 1e-7,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
@@ -304,7 +304,7 @@ def main(unused_argv):
                     train_writer.add_summary(train_summary, num_epoch)
                     train_writer.add_summary(grad_vals, num_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.15f, accuracy %.1f%%, loss %f' %
-                                    (num_epoch, step, FLAGS.base_learning_rate, train_accuracy * 100, train_loss))
+                                    (num_epoch, step, lr, train_accuracy * 100, train_loss))
 
                 ###################################################
                 # Validate the model on the validation set
