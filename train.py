@@ -41,7 +41,7 @@ flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
 flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 1e-8,
+flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
@@ -122,7 +122,7 @@ def main(unused_argv):
     with tf.Graph().as_default() as graph:
         global_step = tf.train.get_or_create_global_step()
 
-        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 1], name='X')
+        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3], name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool, name='is_training')
         # dropout_keep_prob = tf.placeholder(tf.float32, [])
