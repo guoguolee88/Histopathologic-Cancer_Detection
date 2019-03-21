@@ -11,7 +11,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from slim.nets import resnet_v2
-from slim.nets import inception_v4
+# from slim.nets import inception_v4
 
 import data
 from utils import train_utils
@@ -25,7 +25,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
-flags.DEFINE_string('ckpt_name_to_save', 'inception_v4.ckpt',
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_101.ckpt',
                     'Name to save checkpoint file')
 flags.DEFINE_integer('log_steps', 10,
                      'Display logging information at every log_steps.')
@@ -67,12 +67,12 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/inception_v4.ckpt',
+                    './pre-trained/resnet_v2_101.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    'inception_v4/AuxLogits,inception_v4/Logits',
-                    # 'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
+                    # 'inception_v4/AuxLogits,inception_v4/Logits',
+                    'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
@@ -85,7 +85,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'inception_v4',
+                    'resnet_v2_101',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -96,11 +96,11 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 120,
+flags.DEFINE_integer('how_many_training_epochs', 90,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 128, 'batch size')
-flags.DEFINE_integer('height', 112, 'height')
-flags.DEFINE_integer('width', 112, 'width')
+flags.DEFINE_integer('batch_size', 256, 'batch size')
+flags.DEFINE_integer('height', 96, 'height')
+flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
@@ -128,9 +128,9 @@ def main(unused_argv):
         # dropout_keep_prob = tf.placeholder(tf.float32, [])
         # learning_rate = tf.placeholder(tf.float32, [])
 
-        with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
+        with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
-                inception_v4.inception_v4(X,
+                resnet_v2.resnet_v2_101(X,
                                        num_classes=num_classes,
                                        is_training=is_training)
 
