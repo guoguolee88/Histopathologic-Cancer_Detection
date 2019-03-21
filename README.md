@@ -16,10 +16,9 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 - data class balancing
 
 ## TODO 
-- data analysis.
+- apply Adaptive Histogram Equalization
 - data transformation. (center crop, etc...)
 - reference with kaggle kernel
-- apply other networks (Inception V4, Inception-ResNet-v2, and ?)
 - multiple crops at multiple scales.
 - make ensemble module.
 
