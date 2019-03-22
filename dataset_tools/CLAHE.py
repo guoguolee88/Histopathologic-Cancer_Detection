@@ -26,10 +26,10 @@ FLAGS = flags.FLAGS
 
 
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/KGC_roi',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection_ori',
                     'Where the dataset reside.')
 flags.DEFINE_string('target_dir',
-                    '/home/ace19/dl_data/KGC',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the target is.')
 
 
@@ -46,7 +46,7 @@ def main(argv):
         total = len(imgs)
         for idx, img_name in enumerate(imgs):
             if idx % 100 == 0:
-                tf.logging.info('%d/%d completed' % (idx, total))
+                tf.logging.info('%s: %d/%d completed' % (label, idx, total))
 
             filename = os.path.join(label_path, img_name)
             img_grayscale = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
