@@ -59,7 +59,7 @@ class Dataset(object):
             })
 
         # Convert from a scalar string tensor to a float32 tensor with shape
-        image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
+        image_decoded = tf.image.decode_png(features['image/encoded'], channels=1)
         image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_h])
 
         filename = features['image/filename']
@@ -75,14 +75,14 @@ class Dataset(object):
         # into a vector, we don't bother.
         image = tf.image.central_crop(image, 0.5)
         # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
-        # paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
-        paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
+        paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
+        # paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
         image = tf.pad(image, paddings, "CONSTANT")
         # image = tf.image.random_flip_up_down(image)
         # image = tf.image.random_flip_left_right(image)
         # image = tf.image.rot90(image, k=random.randint(0, 4))
         # image = tf.image.random_brightness(image, max_delta=0.3)
-        # image = tf.image.random_contrast(image, lower=1, upper=1.5)
+        # image = tf.image.random_contrast(image, lower=0.7, upper=1.3)
 
         return image, filename
 

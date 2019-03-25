@@ -39,9 +39,9 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .002,
+flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 1e-8,
+flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
@@ -98,9 +98,9 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 150,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 256, 'batch size')
-flags.DEFINE_integer('height', 96, 'height')
-flags.DEFINE_integer('width', 96, 'width')
+flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_integer('height', 112, 'height')
+flags.DEFINE_integer('width', 112, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 

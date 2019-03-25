@@ -28,7 +28,7 @@ def main(_):
     labels = FLAGS.labels.split(',')
     num_classes = len(labels)
 
-    X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
+    X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 1])
 
     with slim.arg_scope(resnet_v2.resnet_arg_scope()):
         logits, _ = \
@@ -164,12 +164,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--height',
         type=int,
-        default=112,
+        default=96,
         help='how do you want image resize height.')
     parser.add_argument(
         '--width',
         type=int,
-        default=112,
+        default=96,
         help='how do you want image resize width.')
     parser.add_argument(
         '--labels',
@@ -179,7 +179,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=128,
+        default=256,
         help='How many items to predict with at once', )
     parser.add_argument(
         '--result_dir',
