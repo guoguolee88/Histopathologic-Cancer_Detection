@@ -14,7 +14,7 @@ from slim.nets import resnet_v2
 # from slim.nets import inception_v4
 
 import data
-from utils import train_utils
+from utils import train_utils, aug_utils
 
 slim = tf.contrib.slim
 
@@ -25,7 +25,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
-flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_101.ckpt',
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_50.ckpt',
                     'Name to save checkpoint file')
 flags.DEFINE_integer('log_steps', 10,
                      'Display logging information at every log_steps.')
@@ -39,7 +39,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .001,
+flags.DEFINE_float('base_learning_rate', .0005,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
@@ -67,17 +67,17 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_101.ckpt',
+                    './pre-trained/resnet_v2_50.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
                     # 'inception_v4/AuxLogits,inception_v4/Logits',
-                    'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
+                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    # 'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
+                    # 'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
                     None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
@@ -85,7 +85,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_101',
+                    'resnet_v2_50',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -96,11 +96,11 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 150,
+flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
 flags.DEFINE_integer('batch_size', 128, 'batch size')
-flags.DEFINE_integer('height', 112, 'height')
-flags.DEFINE_integer('width', 112, 'width')
+flags.DEFINE_integer('height', 96, 'height')
+flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 
@@ -130,7 +130,7 @@ def main(unused_argv):
 
         with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
-                resnet_v2.resnet_v2_101(X,
+                resnet_v2.resnet_v2_50(X,
                                        num_classes=num_classes,
                                        is_training=is_training)
 
@@ -282,6 +282,24 @@ def main(unused_argv):
                     #     # cv2.imshow(str(train_batch_ys[idx]), img)
                     #     cv2.waitKey(100)
                     #     cv2.destroyAllWindows()
+
+                    # TODO:
+                    # aug_set = aug_utils.get_aug_set()
+                    # augmented_batch_xs = aug_set.augment_images(train_batch_xs)
+                    augmented_batch_xs = aug_utils.aug(train_batch_xs)
+                    # # Verify image
+                    # # assert not np.any(np.isnan(train_batch_xs))
+                    # n_batch = augmented_batch_xs.shape[0]
+                    # # n_view = train_batch_xs.shape[1]
+                    # for i in range(n_batch):
+                    #     img = augmented_batch_xs[i]
+                    #     # scipy.misc.toimage(img).show() Or
+                    #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                    #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
+                    #     # cv2.imshow(str(train_batch_ys[idx]), img)
+                    #     cv2.waitKey(100)
+                    #     cv2.destroyAllWindows()
+
 
                     # Run the graph with this batch of training data and learning rate policy.
                     lr, train_summary, train_accuracy, train_loss, grad_vals, _ = \

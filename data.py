@@ -27,8 +27,8 @@ class Dataset(object):
         # The map transformation takes a function and applies it to every element
         # of the dataset.
         dataset = dataset.map(self.decode, num_parallel_calls=8)
-        dataset = dataset.map(self.augment, num_parallel_calls=8)
-        dataset = dataset.map(self.normalize, num_parallel_calls=8)
+        # dataset = dataset.map(self.augment, num_parallel_calls=8)
+        # dataset = dataset.map(self.normalize, num_parallel_calls=8)
 
         # Prefetches a batch at a time to smooth out the time taken to load input
         # files for shuffling and processing.
@@ -54,8 +54,14 @@ class Dataset(object):
             })
 
         # Convert from a scalar string tensor to a float32 tensor with shape
-        image_decoded = tf.image.decode_png(features['image/encoded'], channels=1)
+        image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
         image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
+        image = tf.image.central_crop(image, 0.5)
+        # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
+        # paddings = tf.constant([[89, 89], [89, 89], [0, 0]])  # 299
+        paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
+        # paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
+        image = tf.pad(image, paddings, "CONSTANT")
 
         # Convert label from a scalar uint8 tensor to an int32 scalar.
         label = tf.cast(features['image/label'], tf.int64)
@@ -76,16 +82,16 @@ class Dataset(object):
         image = tf.image.central_crop(image, 0.5)
         # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
         # paddings = tf.constant([[89, 89], [89, 89], [0, 0]])  # 299
-        # paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
-        paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
+        paddings = tf.constant([[24, 24], [24, 24], [0, 0]])  # 96
+        # paddings = tf.constant([[28, 28], [28, 28], [0, 0]])  # 112
         image = tf.pad(image, paddings, "CONSTANT")
         image = tf.image.random_flip_up_down(image)
         image = tf.image.random_flip_left_right(image)
         image = tf.image.rot90(image, k=random.randint(0,4))
-        # image = tf.image.random_brightness(image, max_delta=0.3)
-        # image = tf.image.random_contrast(image, lower=0.7, upper=1.3)
-        # image = tf.image.random_hue(image, max_delta=0.08)
-        # image = tf.image.random_saturation(image, lower=0.5, upper=1.5)
+        image = tf.image.random_brightness(image, max_delta=0.5)
+        image = tf.image.random_contrast(image, lower=0.5, upper=1.5)
+        # image = tf.image.random_hue(image, max_delta=0.04)
+        # image = tf.image.random_saturation(image, lower=0.7, upper=1.3)
         # image = tf.image.resize_images(image, [self.resize_h, self.resize_w])
 
         return image, label
