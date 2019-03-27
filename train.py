@@ -98,7 +98,7 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_integer('batch_size', 256, 'batch size')
 flags.DEFINE_integer('height', 96, 'height')
 flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
@@ -122,7 +122,7 @@ def main(unused_argv):
     with tf.Graph().as_default() as graph:
         global_step = tf.train.get_or_create_global_step()
 
-        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 1], name='X')
+        X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3], name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool, name='is_training')
         # dropout_keep_prob = tf.placeholder(tf.float32, [])
