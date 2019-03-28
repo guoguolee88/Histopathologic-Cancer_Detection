@@ -305,7 +305,7 @@ def main(unused_argv):
                     lr, train_summary, train_accuracy, train_loss, grad_vals, _ = \
                         sess.run([learning_rate, summary_op, accuracy, total_loss, grad_summ_op, train_op],
                                  feed_dict={
-                                     X: train_batch_xs,
+                                     X: augmented_batch_xs,
                                      ground_truth: train_batch_ys,
                                      # learning_rate: FLAGS.base_learning_rate,
                                      is_training: True
