@@ -39,7 +39,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0005,
+flags.DEFINE_float('base_learning_rate', .0002,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
@@ -96,7 +96,7 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 120,
+flags.DEFINE_integer('how_many_training_epochs', 150,
                      'How many training loops to run')
 flags.DEFINE_integer('batch_size', 128, 'batch size')
 flags.DEFINE_integer('height', 96, 'height')

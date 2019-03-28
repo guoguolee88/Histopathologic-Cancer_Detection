@@ -21,7 +21,13 @@ def aug(images_or_image):
     # ], random_order=True)
 
     seq = iaa.Sequential([
-        iaa.Affine(rotate=(-25, 25)),
+        iaa.Affine(
+            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+            translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
+            rotate=(-25, 25),
+            shear=(-8, 8)
+        ),
+        # iaa.Affine(rotate=(-25, 25)),
         iaa.AdditiveGaussianNoise(scale=(30, 90)),
         iaa.Fliplr(0.5),  # horizontally flip 50% of all images
         iaa.Flipud(0.2),  # vertically flip 20% of all images
