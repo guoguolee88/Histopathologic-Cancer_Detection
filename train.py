@@ -25,7 +25,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
-flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_50.ckpt',
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_152.ckpt',
                     'Name to save checkpoint file')
 flags.DEFINE_integer('log_steps', 10,
                      'Display logging information at every log_steps.')
@@ -67,17 +67,17 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_50.ckpt',
+                    './pre-trained/resnet_v2_152.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
                     # 'inception_v4/AuxLogits,inception_v4/Logits',
-                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    'resnet_v2_152/logits,resnet_v2_152/SpatialSqueeze,resnet_v2_152/predictions',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    # 'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    # 'resnet_v2_152/logits,resnet_v2_152/SpatialSqueeze,resnet_v2_152/predictions',
                     None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
@@ -85,7 +85,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_50',
+                    'resnet_v2_152',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -98,7 +98,7 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 256, 'batch size')
+flags.DEFINE_integer('batch_size', 128, 'batch size')
 flags.DEFINE_integer('height', 96, 'height')
 flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
@@ -130,7 +130,7 @@ def main(unused_argv):
 
         with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
-                resnet_v2.resnet_v2_50(X,
+                resnet_v2.resnet_v2_152(X,
                                        num_classes=num_classes,
                                        is_training=is_training)
 

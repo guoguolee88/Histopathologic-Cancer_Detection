@@ -56,6 +56,7 @@ class Dataset(object):
         # Convert from a scalar string tensor to a float32 tensor with shape
         image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
         image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
+        # TODO: crop 을 imgaug 로 대신할 수도...
         image = tf.image.central_crop(image, 0.5)
         # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
         # paddings = tf.constant([[89, 89], [89, 89], [0, 0]])  # 299
