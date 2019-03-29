@@ -4,6 +4,8 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+import numpy as np
+
 import argparse
 import os
 import sys
@@ -11,11 +13,11 @@ import datetime
 import csv
 
 import eval_data
-
-from slim.nets import resnet_v2
-# from slim.nets import inception_v4
+import model
+from utils import aug_utils
 
 slim = tf.contrib.slim
+
 
 FLAGS = None
 
@@ -28,17 +30,21 @@ def main(_):
     labels = FLAGS.labels.split(',')
     num_classes = len(labels)
 
-    X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 1])
+    X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
 
-    with slim.arg_scope(resnet_v2.resnet_arg_scope()):
-        logits, _ = \
-            resnet_v2.resnet_v2_50(X,
-                                   num_classes=num_classes,
-                                   is_training=False)
+    # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+    #     logits, _ = \
+    #         resnet_v2.resnet_v2_50(X,
+    #                                num_classes=num_classes,
+    #                                is_training=False)
+    logits, _ = model.hcd_model(X,
+                                num_classes=num_classes,
+                                is_training=False,
+                                keep_prob=1.0)
 
-    # prediction = tf.argmax(logits, 1, name='prediction')
-    prediction = tf.nn.softmax(logits)
-    predicted_labels = tf.argmax(prediction, 1)
+    predicted_labels = tf.argmax(logits, 1, name='prediction')
+    # prediction = tf.nn.softmax(logits)
+    # predicted_labels = tf.argmax(prediction, 1)
 
     ###############
     # Prepare data
@@ -95,29 +101,42 @@ def main(_):
         submission = {}
 
         eval_filenames = os.path.join(FLAGS.dataset_dir, 'test.record')
-        sess.run(iterator.initializer, feed_dict={filenames: eval_filenames})
-        count = 0;
-        for i in range(batches):
-            batch_xs, filename = sess.run(next_batch)
-            # # Verify image
-            # n_batch = batch_xs.shape[0]
-            # for i in range(n_batch):
-            #     img = batch_xs[i]
-            #     # scipy.misc.toimage(img).show()
-            #     # Or
-            #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
-            #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
-            #     # cv2.imshow(str(fnames), img)
-            #     cv2.waitKey(100)
-            #     cv2.destroyAllWindows()
 
-            pred = sess.run(predicted_labels, feed_dict={X: batch_xs})
-            size = len(filename)
-            for n in range(size):
-                submission[filename[n].decode('UTF-8')[:-4]] = id2name[pred[n]]
+        # Test Time Augmentation (TTA)
+        predictions = []
+        for i in range(FLAGS.num_tta):
+            sess.run(iterator.initializer, feed_dict={filenames: eval_filenames})
 
-            count += size
-            tf.logging.info('Total count: #%d' % count)
+            batch_pred = []
+            batch_filename = []
+            for i in range(batches):
+                batch_xs, filename = sess.run(next_batch)
+                # # Verify image
+                # n_batch = batch_xs.shape[0]
+                # for i in range(n_batch):
+                #     img = batch_xs[i]
+                #     # scipy.misc.toimage(img).show()
+                #     # Or
+                #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
+                #     cv2.imwrite('/home/ace19/Pictures/' + str(i) + '.png', img)
+                #     # cv2.imshow(str(fnames), img)
+                #     cv2.waitKey(100)
+                #     cv2.destroyAllWindows()
+
+                augmented_batch_xs = aug_utils.aug(batch_xs)
+                pred = sess.run(predicted_labels, feed_dict={X: augmented_batch_xs})
+                batch_pred.extend(pred)
+                batch_filename.extend(filename)
+
+            predictions.append(batch_pred)
+
+        pred = np.mean(predictions, axis=0)
+
+        size = len(batch_filename)
+        for n in range(size):
+            submission[batch_filename[n].decode('UTF-8')[:-4]] = id2name[pred[n]]
+
+        tf.logging.info('Total count: #%d' % size)
 
         end_time = datetime.datetime.now()
         tf.logging.info('#%d Data, End prediction: %s' % (PCAM_EVAL_DATA_SIZE, end_time))
@@ -180,7 +199,12 @@ if __name__ == '__main__':
         '--batch_size',
         type=int,
         default=256,
-        help='How many items to predict with at once', )
+        help='How many items to predict with at once')
+    parser.add_argument(
+        '--num_tta',    # Test Time Augmentation
+        type=int,
+        default=6,
+        help='Number of Test Time Augmentation', )
     parser.add_argument(
         '--result_dir',
         type=str,

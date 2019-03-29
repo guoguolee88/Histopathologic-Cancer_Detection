@@ -15,6 +15,7 @@ from slim.nets import resnet_v2
 
 import data
 import val_data
+import model
 from utils import train_utils, aug_utils
 
 slim = tf.contrib.slim
@@ -129,14 +130,19 @@ def main(unused_argv):
         X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3], name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool, name='is_training')
-        # dropout_keep_prob = tf.placeholder(tf.float32, [])
+        keep_prob = tf.placeholder(tf.float32, name='keep_prob')
         # learning_rate = tf.placeholder(tf.float32, [])
 
-        with slim.arg_scope(resnet_v2.resnet_arg_scope()):
-            logits, end_points = \
-                resnet_v2.resnet_v2_101(X,
-                                       num_classes=num_classes,
-                                       is_training=is_training)
+        # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
+        #     logits, end_points = \
+        #         resnet_v2.resnet_v2_101(X,
+        #                                num_classes=num_classes,
+        #                                is_training=is_training)
+        logits, end_points = model.hcd_model(X,
+                                             num_classes=num_classes,
+                                             is_training=is_training,
+                                             keep_prob=keep_prob)
+
 
         # Print name and shape of each tensor.
         tf.logging.info("++++++++++++++++++++++++++++++++++")
@@ -317,7 +323,8 @@ def main(unused_argv):
                                  feed_dict={
                                      X: augmented_batch_xs,
                                      ground_truth: train_batch_ys,
-                                     is_training: True
+                                     is_training: True,
+                                     keep_prob: 0.5
                                  })
                     train_writer.add_summary(train_summary, num_epoch)
                     train_writer.add_summary(grad_vals, num_epoch)
@@ -356,7 +363,8 @@ def main(unused_argv):
                             feed_dict={
                                 X: augmented_val_batch_xs,
                                 ground_truth: validation_batch_ys,
-                                is_training: False
+                                is_training: False,
+                                keep_prob: 1.0
                             })
 
                         validation_writer.add_summary(val_summary, num_epoch)
