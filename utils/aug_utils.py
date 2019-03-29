@@ -6,6 +6,7 @@ import imgaug as ia
 from imgaug import augmenters as iaa
 
 
+# TODO: need random choice like iaa.OneOf func.
 def aug(images_or_image):
     # seq = iaa.Sequential([
     #     iaa.Affine(rotate=(-25, 25)),

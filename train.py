@@ -39,7 +39,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0002,
+flags.DEFINE_float('base_learning_rate', .0001,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
@@ -102,6 +102,9 @@ flags.DEFINE_integer('batch_size', 128, 'batch size')
 flags.DEFINE_integer('height', 96, 'height')
 flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
+
+# Test Time Augmentation
+flags.DEFINE_integer('num_TTA', 5, 'Number of Test Time Augmentation')
 
 
 # temporary constant
@@ -330,45 +333,68 @@ def main(unused_argv):
                 tf.logging.info('--------------------------')
                 tf.logging.info(' Start validation ')
                 tf.logging.info('--------------------------')
+
                 # Reinitialize iterator with the validation dataset
                 sess.run(iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames})
                 total_val_accuracy = 0
                 validation_count = 0
                 total_conf_matrix = None
-                for step in range(val_batches):
-                    validation_batch_xs, validation_batch_ys = sess.run(next_batch)
-                    # Run a validation step and capture training summaries for TensorBoard
-                    # with the `merged` op.
-                    # validation_summary, validation_accuracy, conf_matrix = sess.run(
-                    #     [summary_op, accuracy, confusion_matrix],
-                    #     feed_dict={
-                    #         X: validation_batch_xs,
-                    #         ground_truth: validation_batch_ys,
-                    #         is_training: False
-                    #     })
-                    validation_summary, validation_accuracy, conf_matrix = sess.run(
-                        [summary_op, accuracy, confusion_matrix],
-                        feed_dict={
-                            X: validation_batch_xs,
-                            ground_truth: validation_batch_ys,
-                            # learning_rate: FLAGS.base_learning_rate,
-                            is_training: False
-                        })
 
-                    validation_writer.add_summary(validation_summary, num_epoch)
+                # TODO: Use Test Time Augmentation (TTA)
+                predictions = []
 
-                    total_val_accuracy += validation_accuracy
-                    validation_count += 1
-                    if total_conf_matrix is None:
-                        total_conf_matrix = conf_matrix
-                    else:
-                        total_conf_matrix += conf_matrix
+                for i in range(FLAGS.num_TTA):
+                    # preds = model.predict_generator(train_datagen.flow(x_val, batch_size=bs, shuffle=False),
+                    #                                 steps=len(x_val) / bs)
+                    # predictions.append(preds)
 
-                total_val_accuracy /= validation_count
+                    batch_pred = []
+                    for step in range(val_batches):
+                        validation_batch_xs, validation_batch_ys = sess.run(next_batch)
+                        # Run a validation step and capture training summaries for TensorBoard
+                        # with the `merged` op.
+                        # validation_summary, validation_accuracy, conf_matrix = sess.run(
+                        #     [summary_op, accuracy, confusion_matrix],
+                        #     feed_dict={
+                        #         X: validation_batch_xs,
+                        #         ground_truth: validation_batch_ys,
+                        #         is_training: False
+                        #     })
 
-                tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
-                tf.logging.info('Validation accuracy = %.1f%% (N=%d)' %
-                                (total_val_accuracy * 100, PCAM_VALIDATE_DATA_SIZE))
+                        # random augmentation for TTA
+                        augmented_val_batch_xs = aug_utils.aug(validation_batch_xs)
+
+                        val_summary, val_accuracy, val_logit, conf_matrix = sess.run(
+                            [summary_op, accuracy, logits, confusion_matrix],
+                            feed_dict={
+                                X: augmented_val_batch_xs,
+                                ground_truth: validation_batch_ys,
+                                # learning_rate: FLAGS.base_learning_rate,
+                                is_training: False
+                            })
+
+                        validation_writer.add_summary(val_summary, num_epoch)
+
+                        total_val_accuracy += val_accuracy
+                        validation_count += 1
+                        if total_conf_matrix is None:
+                            total_conf_matrix = conf_matrix
+                        else:
+                            total_conf_matrix += conf_matrix
+
+                        batch_pred.append(val_logit)
+
+
+                    total_val_accuracy /= validation_count
+                    tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
+                    tf.logging.info('Validation accuracy = %.1f%% (N=%d)' %
+                                    (total_val_accuracy * 100, PCAM_VALIDATE_DATA_SIZE))
+
+                    predictions.append(batch_pred)
+
+                pred = np.mean(predictions, axis=0)
+                tf.logging.info('TTA Result: ' %
+                                np.mean(np.equal(np.argmax(y_val, axis=-1), np.argmax(pred, axis=-1))))
 
 
                 # Save the model checkpoint periodically.
