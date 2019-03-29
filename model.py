@@ -21,7 +21,7 @@ def hcd_model(inputs,
 
     # with tf.variable_scope(scope, 'HCD_model', [inputs]):
     with slim.arg_scope(resnet_v2.resnet_arg_scope()):
-        net, _ = \
+        net, end_points = \
             resnet_v2.resnet_v2_101(inputs,
                                     num_classes=num_classes,
                                     is_training=is_training,
@@ -40,4 +40,4 @@ def hcd_model(inputs,
     # out = Dense(1, activation="sigmoid", name="3_")(out)
     logits = slim.fully_connected(net, num_classes, activation_fn=None, scope='logits')
 
-    return logits
+    return logits, end_points

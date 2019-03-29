@@ -130,7 +130,7 @@ def main(unused_argv):
         X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3], name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool, name='is_training')
-        keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+        keep_prob = tf.placeholder(tf.float32, [], name='keep_prob')
         # learning_rate = tf.placeholder(tf.float32, [])
 
         # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
