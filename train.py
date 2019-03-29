@@ -379,10 +379,10 @@ def main(unused_argv):
                     predictions.append(batch_pred)
 
                 pred = np.mean(predictions, axis=0)
-                tta_result = np.mean(np.equal(batch_y, np.argmax(pred, axis=-1)))
-                # summaries.add(tf.summary.scalar('tta_result', tta_result))
-                tf.logging.info('TTA Result: %.5f' % tta_result)
-                # validation_writer.add_summary(tta_result, num_epoch)
+                tta_accuracy = np.mean(np.equal(batch_y, np.argmax(pred, axis=-1)))
+                # summaries.add(tf.summary.scalar('tta_accuracy', tta_accuracy))
+                tf.logging.info('Test Time Accuracy: %.5f' % tta_accuracy)
+                # validation_writer.add_summary(tta_accuracy, num_epoch)
 
                 # Save the model checkpoint periodically.
                 if (num_epoch <= FLAGS.how_many_training_epochs-1):
