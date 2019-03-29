@@ -15,6 +15,7 @@ import csv
 import eval_data
 import model
 from utils import aug_utils
+from slim.nets import resnet_v2
 
 slim = tf.contrib.slim
 
@@ -34,7 +35,7 @@ def main(_):
 
     # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
     #     logits, _ = \
-    #         resnet_v2.resnet_v2_50(X,
+    #         resnet_v2.resnet_v2_101(X,
     #                                num_classes=num_classes,
     #                                is_training=False)
     logits, _ = model.hcd_model(X,
@@ -42,9 +43,9 @@ def main(_):
                                 is_training=False,
                                 keep_prob=1.0)
 
-    predicted_labels = tf.argmax(logits, 1, name='prediction')
-    # prediction = tf.nn.softmax(logits)
-    # predicted_labels = tf.argmax(prediction, 1)
+    # predicted_labels = tf.argmax(logits, 1, name='prediction')
+    prediction = tf.nn.softmax(logits)
+    predicted_labels = tf.argmax(prediction, 1)
 
     ###############
     # Prepare data
@@ -105,6 +106,7 @@ def main(_):
         # Test Time Augmentation (TTA)
         predictions = []
         for i in range(FLAGS.num_tta):
+            tf.logging.info('Start TTA %d : ' % i)
             sess.run(iterator.initializer, feed_dict={filenames: eval_filenames})
 
             batch_pred = []
@@ -131,10 +133,11 @@ def main(_):
             predictions.append(batch_pred)
 
         pred = np.mean(predictions, axis=0)
+        pred1 = np.ceil(pred)
 
         size = len(batch_filename)
         for n in range(size):
-            submission[batch_filename[n].decode('UTF-8')[:-4]] = id2name[pred[n]]
+            submission[batch_filename[n].decode('UTF-8')[:-4]] = id2name[pred1[n]]
 
         tf.logging.info('Total count: #%d' % size)
 
@@ -178,7 +181,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_architecture',
         type=str,
-        default='resnet_v2_50',
+        default='resnet_v2_101',
         help='What model architecture to use')
     parser.add_argument(
         '--height',
@@ -198,12 +201,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=256,
+        default=192,
         help='How many items to predict with at once')
     parser.add_argument(
         '--num_tta',    # Test Time Augmentation
         type=int,
-        default=6,
+        default=5,
         help='Number of Test Time Augmentation', )
     parser.add_argument(
         '--result_dir',
