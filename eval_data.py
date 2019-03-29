@@ -19,8 +19,8 @@ class Dataset(object):
     Handles loading, partitioning, and preparing training data.
     """
 
-    def __init__(self, tfrecord_path, batch_size, is_shuffle, height, width):
-        self.original_size = 96
+    def __init__(self, tfrecord_path, batch_size, height, width):
+        # self.original_size = 96
 
         self.resize_h = height
         self.resize_w = width
@@ -32,8 +32,8 @@ class Dataset(object):
         # The map transformation takes a function and applies it to every element
         # of the dataset.
         dataset = dataset.map(self.decode, num_parallel_calls=8)
-        dataset = dataset.map(self.augment, num_parallel_calls=8)
-        dataset = dataset.map(self.normalize, num_parallel_calls=8)
+        # dataset = dataset.map(self.augment, num_parallel_calls=8)
+        # dataset = dataset.map(self.normalize, num_parallel_calls=8)
 
         # Prefetches a batch at a time to smooth out the time taken to load input
         # files for shuffling and processing.
@@ -42,8 +42,8 @@ class Dataset(object):
         # in memory. The parameter is the number of elements in the buffer. For
         # completely uniform shuffling, set the parameter to be the same as the
         # number of elements in the dataset.
-        if is_shuffle:
-            dataset = dataset.shuffle(1000 + 3 * batch_size)
+
+        # dataset = dataset.shuffle(1000 + 3 * batch_size)
 
         dataset = dataset.repeat(1)
         self.dataset = dataset.batch(batch_size)
@@ -61,7 +61,7 @@ class Dataset(object):
             })
 
         # Convert from a scalar string tensor to a float32 tensor with shape
-        image_decoded = tf.image.decode_png(features['image/encoded'], channels=1)
+        image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
         image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_h])
 
         filename = features['image/filename']

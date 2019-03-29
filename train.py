@@ -14,6 +14,7 @@ from slim.nets import resnet_v2
 # from slim.nets import inception_v4
 
 import data
+import val_data
 from utils import train_utils, aug_utils
 
 slim = tf.contrib.slim
@@ -25,7 +26,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
-flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_152.ckpt',
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_101.ckpt',
                     'Name to save checkpoint file')
 flags.DEFINE_integer('log_steps', 10,
                      'Display logging information at every log_steps.')
@@ -67,17 +68,17 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_152.ckpt',
+                    './pre-trained/resnet_v2_101.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
                     # 'inception_v4/AuxLogits,inception_v4/Logits',
-                    'resnet_v2_152/logits,resnet_v2_152/SpatialSqueeze,resnet_v2_152/predictions',
+                    'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    # 'resnet_v2_152/logits,resnet_v2_152/SpatialSqueeze,resnet_v2_152/predictions',
+                    # 'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
                     None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
@@ -85,7 +86,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_152',
+                    'resnet_v2_101',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -96,15 +97,15 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 150,
+flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 128, 'batch size')
+flags.DEFINE_integer('batch_size', 192, 'batch size')
 flags.DEFINE_integer('height', 96, 'height')
 flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # Test Time Augmentation
-flags.DEFINE_integer('num_TTA', 5, 'Number of Test Time Augmentation')
+flags.DEFINE_integer('num_tta', 5, 'Number of Test Time Augmentation')
 
 
 # temporary constant
@@ -133,7 +134,7 @@ def main(unused_argv):
 
         with slim.arg_scope(resnet_v2.resnet_arg_scope()):
             logits, end_points = \
-                resnet_v2.resnet_v2_152(X,
+                resnet_v2.resnet_v2_101(X,
                                        num_classes=num_classes,
                                        is_training=is_training)
 
@@ -154,7 +155,7 @@ def main(unused_argv):
         # Gather initial summaries.
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
 
-        prediction = tf.argmax(logits, 1, name='prediction')
+        prediction = tf.argmax(logits, axis=1, name='prediction')
         correct_prediction = tf.equal(prediction, ground_truth)
         confusion_matrix = tf.confusion_matrix(
             ground_truth, prediction, num_classes=num_classes)
@@ -231,16 +232,23 @@ def main(unused_argv):
         ###############
         # Prepare data
         ###############
+        # training dateset
         tfrecord_filenames = tf.placeholder(tf.string, shape=[])
-        is_shuffle = tf.placeholder(tf.bool, name='is_shuffle')
         dataset = data.Dataset(tfrecord_filenames,
                                FLAGS.batch_size,
-                               is_shuffle,
                                FLAGS.how_many_training_epochs,
                                FLAGS.height,
                                FLAGS.width)
         iterator = dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
+
+        # validation dateset
+        val_dataset = val_data.Dataset(tfrecord_filenames,
+                                         FLAGS.batch_size,
+                                         FLAGS.height,
+                                         FLAGS.width)
+        val_iterator = val_dataset.dataset.make_initializable_iterator()
+        val_next_batch = val_iterator.get_next()
 
         sess_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
         with tf.Session(config = sess_config) as sess:
@@ -272,8 +280,7 @@ def main(unused_argv):
                 print(" Epoch {} ".format(num_epoch))
                 print("------------------------------------")
 
-                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: train_record_filenames,
-                                                          is_shuffle: True})
+                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: train_record_filenames})
                 for step in range(tr_batches):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
                     # # Verify image
@@ -289,9 +296,6 @@ def main(unused_argv):
                     #     cv2.waitKey(100)
                     #     cv2.destroyAllWindows()
 
-                    # TODO:
-                    # aug_set = aug_utils.get_aug_set()
-                    # augmented_batch_xs = aug_set.augment_images(train_batch_xs)
                     augmented_batch_xs = aug_utils.aug(train_batch_xs)
                     # # Verify image
                     # # assert not np.any(np.isnan(train_batch_xs))
@@ -313,22 +317,16 @@ def main(unused_argv):
                                  feed_dict={
                                      X: augmented_batch_xs,
                                      ground_truth: train_batch_ys,
-                                     # learning_rate: FLAGS.base_learning_rate,
                                      is_training: True
                                  })
-                    # train_summary, train_accuracy, train_loss, grad_vals, _ = \
-                    #     sess.run([summary_op, accuracy, total_loss, grad_summ_op, train_op],
-                    #              feed_dict={
-                    #                  X: train_batch_xs,
-                    #                  ground_truth: train_batch_ys,
-                    #                  learning_rate: FLAGS.base_learning_rate,
-                    #                  is_training: True
-                    #              })
-
                     train_writer.add_summary(train_summary, num_epoch)
                     train_writer.add_summary(grad_vals, num_epoch)
-                    tf.logging.info('Epoch #%d, Step #%d, rate %.15f, accuracy %.1f%%, loss %f' %
+                    tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
                                     (num_epoch, step, lr, train_accuracy * 100, train_loss))
+
+                # validate per every 3 epoch
+                if num_epoch % 5 != 0:
+                    continue
 
                 ###################################################
                 # Validate the model on the validation set
@@ -337,35 +335,19 @@ def main(unused_argv):
                 tf.logging.info(' Start validation ')
                 tf.logging.info('--------------------------')
 
-                # Reinitialize iterator with the validation dataset
-                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames,
-                                                          is_shuffle: False})
-                total_val_accuracy = 0
-                validation_count = 0
-                total_conf_matrix = None
-
-                # TODO: Use Test Time Augmentation (TTA)
+                # Test Time Augmentation (TTA)
                 predictions = []
-
-                for i in range(FLAGS.num_TTA):
-                    # preds = model.predict_generator(train_datagen.flow(x_val, batch_size=bs, shuffle=False),
-                    #                                 steps=len(x_val) / bs)
-                    # predictions.append(preds)
+                for i in range(FLAGS.num_tta):
+                    # Reinitialize iterator with the validation dataset
+                    sess.run(val_iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames})
+                    total_val_accuracy = 0
+                    validation_count = 0
+                    total_conf_matrix = None
 
                     batch_pred = []
                     batch_y = []
                     for step in range(val_batches):
-                        validation_batch_xs, validation_batch_ys = sess.run(next_batch)
-                        # Run a validation step and capture training summaries for TensorBoard
-                        # with the `merged` op.
-                        # validation_summary, validation_accuracy, conf_matrix = sess.run(
-                        #     [summary_op, accuracy, confusion_matrix],
-                        #     feed_dict={
-                        #         X: validation_batch_xs,
-                        #         ground_truth: validation_batch_ys,
-                        #         is_training: False
-                        #     })
-
+                        validation_batch_xs, validation_batch_ys = sess.run(val_next_batch)
                         # random augmentation for TTA
                         augmented_val_batch_xs = aug_utils.aug(validation_batch_xs)
 
@@ -374,7 +356,6 @@ def main(unused_argv):
                             feed_dict={
                                 X: augmented_val_batch_xs,
                                 ground_truth: validation_batch_ys,
-                                # learning_rate: FLAGS.base_learning_rate,
                                 is_training: False
                             })
 
@@ -387,9 +368,8 @@ def main(unused_argv):
                         else:
                             total_conf_matrix += conf_matrix
 
-                        batch_pred.append(val_logit)
-                        batch_y.append(validation_batch_ys)
-
+                        batch_pred.extend(val_logit)
+                        batch_y.extend(validation_batch_ys)
 
                     total_val_accuracy /= validation_count
                     tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
@@ -399,9 +379,10 @@ def main(unused_argv):
                     predictions.append(batch_pred)
 
                 pred = np.mean(predictions, axis=0)
-                tf.logging.info('TTA Result: ' %
-                                np.mean(np.equal(np.argmax(batch_y, axis=-1), np.argmax(pred, axis=-1))))
-
+                tta_result = np.mean(np.equal(batch_y, np.argmax(pred, axis=-1)))
+                # summaries.add(tf.summary.scalar('tta_result', tta_result))
+                tf.logging.info('TTA Result: %.5f' % tta_result)
+                # validation_writer.add_summary(tta_result, num_epoch)
 
                 # Save the model checkpoint periodically.
                 if (num_epoch <= FLAGS.how_many_training_epochs-1):
