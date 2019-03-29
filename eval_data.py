@@ -19,7 +19,7 @@ class Dataset(object):
     Handles loading, partitioning, and preparing training data.
     """
 
-    def __init__(self, tfrecord_path, batch_size, height, width):
+    def __init__(self, tfrecord_path, batch_size, is_shuffle, height, width):
         self.original_size = 96
 
         self.resize_h = height
@@ -42,7 +42,9 @@ class Dataset(object):
         # in memory. The parameter is the number of elements in the buffer. For
         # completely uniform shuffling, set the parameter to be the same as the
         # number of elements in the dataset.
-        dataset = dataset.shuffle(1000 + 3 * batch_size)
+        if is_shuffle:
+            dataset = dataset.shuffle(1000 + 3 * batch_size)
+
         dataset = dataset.repeat(1)
         self.dataset = dataset.batch(batch_size)
 

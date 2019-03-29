@@ -44,8 +44,10 @@ def main(_):
     # Prepare data
     ###############
     filenames = tf.placeholder(tf.string, shape=[])
+    is_shuffle = tf.placeholder(tf.bool, name='is_shuffle')
     eval_dataset = eval_data.Dataset(filenames,
                                      FLAGS.batch_size,
+                                     is_shuffle,
                                      FLAGS.height,
                                      FLAGS.width)
     iterator = eval_dataset.dataset.make_initializable_iterator()
@@ -95,7 +97,8 @@ def main(_):
         submission = {}
 
         eval_filenames = os.path.join(FLAGS.dataset_dir, 'test.record')
-        sess.run(iterator.initializer, feed_dict={filenames: eval_filenames})
+        sess.run(iterator.initializer, feed_dict={filenames: eval_filenames,
+                                                  is_shuffle: False})
         count = 0;
         for i in range(batches):
             batch_xs, filename = sess.run(next_batch)

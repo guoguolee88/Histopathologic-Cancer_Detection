@@ -232,8 +232,10 @@ def main(unused_argv):
         # Prepare data
         ###############
         tfrecord_filenames = tf.placeholder(tf.string, shape=[])
+        is_shuffle = tf.placeholder(tf.bool, name='is_shuffle')
         dataset = data.Dataset(tfrecord_filenames,
                                FLAGS.batch_size,
+                               is_shuffle,
                                FLAGS.how_many_training_epochs,
                                FLAGS.height,
                                FLAGS.width)
@@ -270,7 +272,8 @@ def main(unused_argv):
                 print(" Epoch {} ".format(num_epoch))
                 print("------------------------------------")
 
-                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: train_record_filenames})
+                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: train_record_filenames,
+                                                          is_shuffle: True})
                 for step in range(tr_batches):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
                     # # Verify image
@@ -335,7 +338,8 @@ def main(unused_argv):
                 tf.logging.info('--------------------------')
 
                 # Reinitialize iterator with the validation dataset
-                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames})
+                sess.run(iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames,
+                                                          is_shuffle: False})
                 total_val_accuracy = 0
                 validation_count = 0
                 total_conf_matrix = None
@@ -349,6 +353,7 @@ def main(unused_argv):
                     # predictions.append(preds)
 
                     batch_pred = []
+                    batch_y = []
                     for step in range(val_batches):
                         validation_batch_xs, validation_batch_ys = sess.run(next_batch)
                         # Run a validation step and capture training summaries for TensorBoard
@@ -383,6 +388,7 @@ def main(unused_argv):
                             total_conf_matrix += conf_matrix
 
                         batch_pred.append(val_logit)
+                        batch_y.append(validation_batch_ys)
 
 
                     total_val_accuracy /= validation_count
@@ -394,7 +400,7 @@ def main(unused_argv):
 
                 pred = np.mean(predictions, axis=0)
                 tf.logging.info('TTA Result: ' %
-                                np.mean(np.equal(np.argmax(y_val, axis=-1), np.argmax(pred, axis=-1))))
+                                np.mean(np.equal(np.argmax(batch_y, axis=-1), np.argmax(pred, axis=-1))))
 
 
                 # Save the model checkpoint periodically.
