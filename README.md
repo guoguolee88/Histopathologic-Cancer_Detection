@@ -19,8 +19,10 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 ## TODO 
 - make ensemble module (Will see how well it performs with 5 or 10 models).
 - Save model every time AUROC is increased. By the end of the training save the best model.
-- Research and Dev. the keywords below.
-  - Apply ReduceLROnPlateau with the patience of 1-2 epocs ??
+  AUC = AUROC (the Area Under a ROC Curve) : ROC 커브의 밑면적을 구한 값이 바로 AUC. 이 값이 1에 가까울수록 성능이 좋다.
+- Research and development the keywords below.
+  - Apply ReduceLROnPlateau with the patience of 1-2 epocs
+    : learning rate to be reduced when training is not progressing.
   - Train the added layers for 1-2 epoch and then the whole network for another 3-4 ??
 
 ## References from

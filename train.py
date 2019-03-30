@@ -105,7 +105,7 @@ flags.DEFINE_string('dataset_dir',
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
 flags.DEFINE_integer('batch_size', 192, 'batch size')
-flags.DEFINE_integer('val_batch_size', 10, 'validation batch size')
+flags.DEFINE_integer('val_batch_size', 64, 'validation batch size')
 flags.DEFINE_integer('height', 128, 'height')
 flags.DEFINE_integer('width', 128, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
@@ -113,8 +113,6 @@ flags.DEFINE_string('labels', '0,1', 'Labels to use')
 # Test Time Augmentation
 flags.DEFINE_integer('num_tta', 8, 'Number of Test Time Augmentation')
 flags.DEFINE_integer('verification_cycle', 5, 'Number of verification cycle')
-
-
 
 
 # temporary constant
