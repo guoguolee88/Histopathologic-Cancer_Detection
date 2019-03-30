@@ -41,9 +41,9 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0001,
+flags.DEFINE_float('base_learning_rate', .0007,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
+flags.DEFINE_float('learning_rate_decay_factor', 1e-8,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
@@ -338,7 +338,7 @@ def main(unused_argv):
                                      X: augmented_batch_xs,
                                      ground_truth: train_batch_ys,
                                      is_training: True,
-                                     keep_prob: 0.5
+                                     keep_prob: 0.8
                                  })
                     train_writer.add_summary(train_summary, num_epoch)
                     train_writer.add_summary(grad_vals, num_epoch)

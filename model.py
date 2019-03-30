@@ -9,20 +9,20 @@ import tensorflow as tf
 slim = tf.contrib.slim
 
 
-# batch_norm_params = {
-#   'decay': 0.997,    # batch_norm_decay
-#   'epsilon': 1e-5,   # batch_norm_epsilon
-#   'scale': True,     # batch_norm_scale
-#   'updates_collections': tf.GraphKeys.UPDATE_OPS,    # batch_norm_updates_collections
-#   'is_training': True,  # is_training
-#   'fused': None,  # Use fused batch norm if possible.
-# }
+batch_norm_params = {
+  'decay': 0.997,    # batch_norm_decay
+  'epsilon': 1e-5,   # batch_norm_epsilon
+  'scale': True,     # batch_norm_scale
+  'updates_collections': tf.GraphKeys.UPDATE_OPS,    # batch_norm_updates_collections
+  'is_training': True,  # is_training
+  'fused': None,  # Use fused batch norm if possible.
+}
 
 
 def hcd_model(inputs,
               num_classes,
               is_training=True,
-              keep_prob=0.5,
+              keep_prob=0.8,
               scope='HCD_model'):
     '''
     :param inputs: N x H x W x C tensor
@@ -48,7 +48,23 @@ def hcd_model(inputs,
     # out = Dropout(0.5)(out)
     net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
     # out = Dense(1, activation="sigmoid", name="3_")(out)
-    net = slim.fully_connected(net, 512, scope='fc')
-    logits = slim.fully_connected(net, num_classes, activation_fn=None, scope='logits')
+    net = slim.fully_connected(net,
+                               768,
+                               normalizer_fn=slim.batch_norm,
+                               normalizer_params=batch_norm_params,
+                               scope='fc1')
+    net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
+    net = slim.fully_connected(net,
+                               256,
+                               normalizer_fn=slim.batch_norm,
+                               normalizer_params=batch_norm_params,
+                               scope='fc2')
+    net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
+    logits = slim.fully_connected(net,
+                                  num_classes,
+                                  normalizer_fn=slim.batch_norm,
+                                  normalizer_params=batch_norm_params,
+                                  activation_fn=None,
+                                  scope='logits')
 
     return logits, end_points
