@@ -27,7 +27,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
-flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_101.ckpt',
+flags.DEFINE_string('ckpt_name_to_save', 'resnet_v2_50.ckpt',
                     'Name to save checkpoint file')
 flags.DEFINE_integer('log_steps', 10,
                      'Display logging information at every log_steps.')
@@ -68,18 +68,22 @@ flags.DEFINE_float('slow_start_learning_rate', 1e-4,
                    'Learning rate employed during slow start.')
 
 # Settings for fine-tuning the network.
+flags.DEFINE_string('saved_checkpoint_dir',
+                    # './models',
+                    None,
+                    'Saved checkpoint dir.')
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_101.ckpt',
+                    './pre-trained/resnet_v2_50.ckpt',
                     # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
                     # 'inception_v4/AuxLogits,inception_v4/Logits',
-                    'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
+                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
                     # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
-                    # 'resnet_v2_101/logits,resnet_v2_101/SpatialSqueeze,resnet_v2_101/predictions',
+                    # 'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
                     None,
                     'Comma-separated list of scopes to filter the set of variables '
                     'to train. By default, None would train all the variables.')
@@ -87,7 +91,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_101',
+                    'resnet_v2_50',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -106,13 +110,16 @@ flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # Test Time Augmentation
-flags.DEFINE_integer('num_tta', 5, 'Number of Test Time Augmentation')
+flags.DEFINE_integer('num_tta', 10, 'Number of Test Time Augmentation')
+flags.DEFINE_integer('verification_cycle', 10, 'Number of verification cycle')
+
+
 
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
-PCAM_TRAIN_DATA_SIZE = 142400
-PCAM_VALIDATE_DATA_SIZE = 35600
+PCAM_TRAIN_DATA_SIZE = 172355
+PCAM_VALIDATE_DATA_SIZE = 47670
 
 
 def main(unused_argv):
@@ -135,7 +142,7 @@ def main(unused_argv):
 
         # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
         #     logits, end_points = \
-        #         resnet_v2.resnet_v2_101(X,
+        #         resnet_v2.resnet_v2_50(X,
         #                                num_classes=num_classes,
         #                                is_training=is_training)
         logits, end_points = model.hcd_model(X,
@@ -262,6 +269,13 @@ def main(unused_argv):
 
             # Create a saver object which will save all the variables
             saver = tf.train.Saver()
+            if FLAGS.saved_checkpoint_dir:
+                if tf.gfile.IsDirectory(FLAGS.train_logdir):
+                    checkpoint_path = tf.train.latest_checkpoint(FLAGS.train_logdir)
+                else:
+                    checkpoint_path = FLAGS.train_logdir
+                saver.restore(sess, checkpoint_path)
+
             if FLAGS.pre_trained_checkpoint:
                 train_utils.restore_fn(FLAGS)
 
@@ -331,8 +345,8 @@ def main(unused_argv):
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
                                     (num_epoch, step, lr, train_accuracy * 100, train_loss))
 
-                # validate per every 3 epoch
-                if num_epoch % 5 != 0:
+                # validate per every verification_cycle flag
+                if num_epoch % FLAGS.verification_cycle != 0:
                     continue
 
                 ###################################################

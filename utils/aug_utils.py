@@ -23,7 +23,7 @@ def aug(images_or_image):
 
     # seq = iaa.Sequential([
     #     iaa.Affine(
-    #         scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+    #         scale={"x": (0.7, 1.3), "y": (0.7, 1.3)},
     #         translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
     #         rotate=(-25, 25),
     #         shear=(-8, 8)
@@ -33,7 +33,7 @@ def aug(images_or_image):
     #     # iaa.AdditiveGaussianNoise(scale=(30, 90)),
     #     iaa.Fliplr(0.5),  # horizontally flip 50% of all images
     #     iaa.Flipud(0.2),  # vertically flip 20% of all images
-    #     iaa.Crop(percent=(0, 0.2)),
+    #     iaa.Crop(px=(40, 56)),  # crop images from each side by 0 to 16px (randomly chosen)
     #     # convert images into their superpixel representation
     #     iaa.OneOf([
     #         iaa.GaussianBlur((0, 0.5)),  # blur images with a sigma between 0 and 3.0
@@ -46,34 +46,62 @@ def aug(images_or_image):
     # ], random_order=True)
 
     seq = iaa.Sequential([
-        iaa.Fliplr(0.5),  # horizontal flips
+        iaa.Fliplr(0.5), # horizontally flip 50% of the images
         iaa.Flipud(0.2),  # vertically flip 20% of all images
-        iaa.Crop(percent=(0, 0.1)),  # random crops
-        # Small gaussian blur with random sigma between 0 and 0.5.
-        # But we only blur about 50% of all images.
-        iaa.Sometimes(0.5,
-                      iaa.GaussianBlur(sigma=(0, 0.5))
-                      ),
-        # Strengthen or weaken the contrast in each image.
-        iaa.ContrastNormalization((0.75, 1.5)),
-        # Add gaussian noise.
-        # For 50% of all images, we sample the noise once per pixel.
-        # For the other 50% of all images, we sample the noise per pixel AND
-        # channel. This can change the color (not only brightness) of the
-        # pixels.
-        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5),
-        # Make some images brighter and some darker.
-        # In 20% of all cases, we sample the multiplier once per channel,
-        # which can end up changing the color of the images.
-        iaa.Multiply((0.8, 1.2), per_channel=0.2),
-        # Apply affine transformations to each image.
-        # Scale/zoom them, translate/move them, rotate them and shear them.
-        iaa.Affine(
-            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-            translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
-            rotate=(-25, 25),
-            shear=(-8, 8)
-        )
+        # Rotates all images by 90 or 270 degrees.
+        # Resizes all images afterwards to keep the size that they had before augmentation.
+        # This may cause the images to look distorted.
+        iaa.Sometimes(iaa.Rot90((1, 3))),
+        # crop some of the images by 0-10% of their height/width
+        iaa.Crop(percent=(0.4, 0.5)),
+        iaa.Sometimes(
+            iaa.Affine(
+                scale={"x": (0.7, 1.3), "y": (0.7, 1.3)},
+                translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
+                # rotate=(-45, 45),
+                shear=(-8, 8)
+            )),
+        # Execute 0 to 5 of the following (less important) augmenters per
+        # image. Don't execute all of them, as that would often be way too
+        # strong.
+        iaa.SomeOf((0, 5),
+           [
+               # # Small gaussian blur with random sigma between 0 and 0.5.
+               # # But we only blur about 50% of all images.
+               # iaa.Sometimes(0.5,
+               #               iaa.GaussianBlur(sigma=(0, 0.3))
+               #               ),
+               # Blur each image with varying strength using
+               # gaussian blur (sigma between 0 and 3.0),
+               # average/uniform blur (kernel size between 2x2 and 7x7)
+               # median blur (kernel size between 3x3 and 11x11).
+               iaa.OneOf([
+                   iaa.GaussianBlur((0, 3.0)),
+                   iaa.AverageBlur(k=(2, 7)),
+                   iaa.MedianBlur(k=(3, 11)),
+               ]),
+               # Sharpen each image, overlay the result with the original
+               # image using an alpha between 0 (no sharpening) and 1
+               # (full sharpening effect).
+               iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)),
+
+               # Same as sharpen, but for an embossing effect.
+               iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)),
+               # Strengthen or weaken the contrast in each image.
+               iaa.NContrastNormalization((0.85, 1.5)),
+               # Add gaussian noise.
+               # For 50% of all images, we sample the noise once per pixel.
+               # For the other 50% of all images, we sample the noise per pixel AND
+               # channel. This can change the color (not only brightness) of the
+               # pixels.
+               iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5),
+               # Make some images brighter and some darker.
+               # In 20% of all cases, we sample the multiplier once per channel,
+               # which can end up changing the color of the images.
+               iaa.Multiply((0.8, 1.2), per_channel=0.2),
+               # Apply affine transformations to each image.
+               # Scale/zoom them, translate/move them, rotate them and shear them.
+            ], random_order=True)
     ], random_order=True)  # apply augmenters in random order
 
     # images_aug = [seq.augment_image(images_or_image) for _ in range(8)]

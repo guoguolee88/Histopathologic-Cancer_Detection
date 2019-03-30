@@ -14,15 +14,14 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 
 ## Applied
 - data class balancing
+- WSI (Whole slide imaging)
 
 ## TODO 
-- apply Adaptive Histogram Equalization
-- data transformation. (center crop, etc...)
-- reference with kaggle kernel
-- multiple crops at multiple scales.
-- make ensemble module.
+- make ensemble module (different architectures).
+- Save better model than before.
 
 ## References from
 - https://github.com/tensorflow/tensorflow/blob/r1.11/tensorflow/examples/how_tos/reading_data/fully_connected_reader.py
 - https://github.com/balancap/SSD-Tensorflow
 - https://www.kaggle.com/qitvision/a-complete-ml-pipeline-fast-ai
+- https://www.kaggle.com/c/histopathologic-cancer-detection/discussion/84790
