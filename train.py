@@ -330,7 +330,6 @@ def main(unused_argv):
                     #     cv2.waitKey(100)
                     #     cv2.destroyAllWindows()
 
-
                     # Run the graph with this batch of training data and learning rate policy.
                     lr, train_summary, train_accuracy, train_loss, grad_vals, _ = \
                         sess.run([learning_rate, summary_op, accuracy, total_loss, grad_summ_op, train_op],
