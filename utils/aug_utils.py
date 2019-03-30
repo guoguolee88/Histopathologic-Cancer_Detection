@@ -71,20 +71,9 @@ def aug(images_or_image):
         # strong.
         iaa.SomeOf((0, 3),
            [
-               # # Small gaussian blur with random sigma between 0 and 0.5.
-               # # But we only blur about 50% of all images.
-               # iaa.Sometimes(0.5,
-               #               iaa.GaussianBlur(sigma=(0, 0.3))
-               #               ),
-               # Blur each image with varying strength using
-               # gaussian blur (sigma between 0 and 3.0),
-               # average/uniform blur (kernel size between 2x2 and 7x7)
-               # median blur (kernel size between 3x3 and 11x11).
-               iaa.OneOf([
-                   iaa.GaussianBlur((0, 3.0)),
-                   iaa.AverageBlur(k=(2, 7)),
-                   iaa.MedianBlur(k=(3, 11)),
-               ]),
+               # Small gaussian blur with random sigma between 0 and 0.5.
+               # But we only blur about 50% of all images.
+               iaa.Sometimes(0.5, iaa.GaussianBlur(sigma=(0, 0.3))),
                # Sharpen each image, overlay the result with the original
                # image using an alpha between 0 (no sharpening) and 1
                # (full sharpening effect).
