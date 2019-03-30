@@ -41,9 +41,9 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0007,
+flags.DEFINE_float('base_learning_rate', .0008,
                    'The base learning rate for model training.')
-flags.DEFINE_float('learning_rate_decay_factor', 1e-8,
+flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
 flags.DEFINE_float('learning_rate_decay_step', .2000,
                    'Decay the base learning rate at a fixed step.')
@@ -105,13 +105,14 @@ flags.DEFINE_string('dataset_dir',
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
 flags.DEFINE_integer('batch_size', 192, 'batch size')
-flags.DEFINE_integer('height', 96, 'height')
-flags.DEFINE_integer('width', 96, 'width')
+flags.DEFINE_integer('val_batch_size', 10, 'validation batch size')
+flags.DEFINE_integer('height', 128, 'height')
+flags.DEFINE_integer('width', 128, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # Test Time Augmentation
-flags.DEFINE_integer('num_tta', 10, 'Number of Test Time Augmentation')
-flags.DEFINE_integer('verification_cycle', 10, 'Number of verification cycle')
+flags.DEFINE_integer('num_tta', 8, 'Number of Test Time Augmentation')
+flags.DEFINE_integer('verification_cycle', 5, 'Number of verification cycle')
 
 
 
@@ -257,9 +258,9 @@ def main(unused_argv):
 
         # validation dateset
         val_dataset = val_data.Dataset(tfrecord_filenames,
-                                         FLAGS.batch_size,
-                                         FLAGS.height,
-                                         FLAGS.width)
+                                       FLAGS.val_batch_size,
+                                       FLAGS.height,
+                                       FLAGS.width)
         val_iterator = val_dataset.dataset.make_initializable_iterator()
         val_next_batch = val_iterator.get_next()
 
@@ -284,8 +285,8 @@ def main(unused_argv):
             tr_batches = int(PCAM_TRAIN_DATA_SIZE / FLAGS.batch_size)
             if PCAM_TRAIN_DATA_SIZE % FLAGS.batch_size > 0:
                 tr_batches += 1
-            val_batches = int(PCAM_VALIDATE_DATA_SIZE / FLAGS.batch_size)
-            if PCAM_VALIDATE_DATA_SIZE % FLAGS.batch_size > 0:
+            val_batches = int(PCAM_VALIDATE_DATA_SIZE / FLAGS.val_batch_size)
+            if PCAM_VALIDATE_DATA_SIZE % FLAGS.val_batch_size > 0:
                 val_batches += 1
 
             # The filenames argument to the TFRecordDataset initializer can either be a string,
