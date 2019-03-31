@@ -104,15 +104,15 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 256, 'batch size')
+flags.DEFINE_integer('batch_size', 80, 'batch size')
 flags.DEFINE_integer('val_batch_size', 64, 'validation batch size')
-flags.DEFINE_integer('height', 96, 'height')
-flags.DEFINE_integer('width', 96, 'width')
+flags.DEFINE_integer('height', 196, 'height')
+flags.DEFINE_integer('width', 196, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # Test Time Augmentation
-flags.DEFINE_integer('num_tta', 8, 'Number of Test Time Augmentation')
-flags.DEFINE_integer('verification_cycle', 10, 'Number of verification cycle')
+flags.DEFINE_integer('num_tta', 6, 'Number of Test Time Augmentation')
+flags.DEFINE_integer('verification_cycle', 5, 'Number of verification cycle')
 
 
 # temporary constant
@@ -331,7 +331,7 @@ def main(unused_argv):
                                      X: augmented_batch_xs,
                                      ground_truth: train_batch_ys,
                                      is_training: True,
-                                     keep_prob: 0.8
+                                     keep_prob: 0.7
                                  })
                     train_writer.add_summary(train_summary, num_epoch)
                     train_writer.add_summary(grad_vals, num_epoch)

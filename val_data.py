@@ -52,7 +52,6 @@ class Dataset(object):
         # Convert from a scalar string tensor to a float32 tensor with shape
         image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
         image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
-        # TODO: crop 을 imgaug 로 대신할 수도...
         # image = tf.image.central_crop(image, 0.5)
         # # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224
         # # paddings = tf.constant([[89, 89], [89, 89], [0, 0]])  # 299
@@ -68,13 +67,6 @@ class Dataset(object):
 
     def augment(self, image, label):
         """Placeholder for data augmentation.
-        # AUGMENTATION VARIABLES
-        CROP_SIZE = 90          # final size after crop
-        RANDOM_ROTATION = 3    # range (0-180), 180 allows all rotation variations, 0=no change
-        RANDOM_SHIFT = 2        # center crop shift in x and y axes, 0=no change. This cannot be more than (ORIGINAL_SIZE - CROP_SIZE)//2
-        RANDOM_BRIGHTNESS = 7  # range (0-100), 0=no change
-        RANDOM_CONTRAST = 5    # range (0-100), 0=no change
-        RANDOM_90_DEG_TURN = 1  # 0 or 1= random turn to left or right
         """
         image = tf.image.central_crop(image, 0.5)
         # paddings = tf.constant([[56,56], [56,56], [0,0]])   # 224

@@ -26,10 +26,10 @@ FLAGS = flags.FLAGS
 
 
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection_ori',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection',
                     'Where the dataset reside.')
 flags.DEFINE_string('target_dir',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection_gray',
                     'Where the target is.')
 
 

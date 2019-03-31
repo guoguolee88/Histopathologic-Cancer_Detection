@@ -2,9 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from nets import resnet_v2
-
 import tensorflow as tf
+
+from nets import resnet_v2
 
 slim = tf.contrib.slim
 
@@ -60,10 +60,14 @@ def hcd_model(inputs,
                                normalizer_params=batch_norm_params,
                                scope='fc2')
     net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
+    # net = slim.fully_connected(net,
+    #                            512,
+    #                            normalizer_fn=slim.batch_norm,
+    #                            normalizer_params=batch_norm_params,
+    #                            scope='fc')
+    # net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
     logits = slim.fully_connected(net,
                                   num_classes,
-                                  normalizer_fn=slim.batch_norm,
-                                  normalizer_params=batch_norm_params,
                                   activation_fn=None,
                                   scope='logits')
 

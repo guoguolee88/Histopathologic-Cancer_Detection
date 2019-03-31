@@ -28,13 +28,13 @@ TEST = 'test'
 
 flags = tf.app.flags
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection_gray',
                     'Root Directory to raw PCam dataset.')
 flags.DEFINE_string('output_path',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/' + VALIDATE + '.record',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection_gray/' + TEST + '.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('label_map_path',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection/train_labels.csv',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection_gray/train_labels.csv',
                     # None,
                     'Path to label map')
 
@@ -55,7 +55,7 @@ def get_label_map_dict(label_map_path):
 def dict_to_tf_example(image_name,
                        dataset_directory,
                        label_map_dict=None,
-                       image_subdirectory=VALIDATE):
+                       image_subdirectory=TEST):
     """
     Args:
       image: a single image name
@@ -115,7 +115,7 @@ def main(_):
         label_map_dict = get_label_map_dict(FLAGS.label_map_path)
 
     tf.logging.info('Reading from PCam dataset.')
-    dataset_path = os.path.join(FLAGS.dataset_dir, VALIDATE)
+    dataset_path = os.path.join(FLAGS.dataset_dir, TEST)
     filenames = sorted(os.listdir(dataset_path))
     random.seed(RANDOM_SEED)
     random.shuffle(filenames)
