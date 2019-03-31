@@ -196,7 +196,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=48,
+        default=96,
         help='How many items to predict with at once')
     parser.add_argument(
         '--num_tta',    # Test Time Augmentation

@@ -37,38 +37,38 @@ def aug(images):
         #         shear=(-8, 8)
         #     )),
 
-        iaa.SomeOf((0, 3),
-                   [
-                        # Small gaussian blur with random sigma between 0 and 0.3.
-                        # But we only blur about 50% of all images.
-                        iaa.Sometimes(0.5, iaa.GaussianBlur(sigma=(0, 0.5))),
+        # iaa.SomeOf((0, 3),
+        #    [
+        # Small gaussian blur with random sigma between 0 and 0.3.
+        # But we only blur about 50% of all images.
+        iaa.Sometimes(0.5, iaa.GaussianBlur(sigma=(0, 0.5))),
 
-                        # increases/decreases hue and saturation by random values.
-                        iaa.Sometimes(0.5,
-                                      iaa.AddToHueAndSaturation((-20, 20), per_channel=True)),  # change their color
+        # # increases/decreases hue and saturation by random values.
+        # iaa.Sometimes(0.5,
+        #               iaa.AddToHueAndSaturation((-20, 20), per_channel=True)),  # change their color
+        #
+        # # Convert each image to grayscale and then overlay the
+        # # result with the original with random alpha. I.e. remove
+        # # colors with varying strengths.
+        # iaa.Sometimes(0.5,
+        #               iaa.Grayscale(alpha=(0.0, 1.0))),
 
-                        # Convert each image to grayscale and then overlay the
-                        # result with the original with random alpha. I.e. remove
-                        # colors with varying strengths.
-                        iaa.Sometimes(0.5,
-                                      iaa.Grayscale(alpha=(0.0, 1.0))),
+        # Strengthen or weaken the contrast in each image.
+        iaa.ContrastNormalization((0.75, 1.5)),
 
-                        # Strengthen or weaken the contrast in each image.
-                        iaa.ContrastNormalization((0.75, 1.5)),
+        # Add gaussian noise.
+        # For 50% of all images, we sample the noise once per pixel.
+        # For the other 50% of all images, we sample the noise per pixel AND channel.
+        # This can change the color (not only brightness) of the pixels.
+        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5),
 
-                        # Add gaussian noise.
-                        # For 50% of all images, we sample the noise once per pixel.
-                        # For the other 50% of all images, we sample the noise per pixel AND channel.
-                        # This can change the color (not only brightness) of the pixels.
-                        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5),
-
-                        # In some images move pixels locally around (with random strengths).
-                        iaa.Sometimes(0.5,
-                                      iaa.ElasticTransformation(alpha=(0.5, 3.5), sigma=0.25))
-                   ],
-                   # do all of the above augmentations in random order
-                   random_order=True
-                ),
+        # In some images move pixels locally around (with random strengths).
+        iaa.Sometimes(0.5,
+                      iaa.ElasticTransformation(alpha=(0.5, 3.5), sigma=0.25)),
+        #    ],
+        #    # do all of the above augmentations in random order
+        #    random_order=True
+        # ),
 
         iaa.Multiply(mul=(1. / 255), per_channel=True)
 
