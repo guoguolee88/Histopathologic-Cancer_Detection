@@ -62,7 +62,7 @@ class Dataset(object):
 
         # Convert from a scalar string tensor to a float32 tensor with shape
         image_decoded = tf.image.decode_png(features['image/encoded'], channels=3)
-        image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_h])
+        image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
 
         filename = features['image/filename']
 
