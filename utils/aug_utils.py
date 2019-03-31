@@ -6,7 +6,7 @@ import imgaug as ia
 from imgaug import augmenters as iaa
 
 
-def aug(images_or_image):
+def aug(images):
     # seq = iaa.Sequential([
     #     iaa.Affine(rotate=(-25, 25)),
     #     iaa.AdditiveGaussianNoise(scale=(10, 60)),
@@ -53,22 +53,23 @@ def aug(images_or_image):
         iaa.Fliplr(0.5), # horizontally flip 50% of the images
         iaa.Flipud(0.2),  # vertically flip 20% of all images
 
-        # crop some of the images by 40-60% of their height/width
-        iaa.Crop(percent=(0.4, 0.6)),
+        # crop some of the images by 0-50% of their height/width
+        # TODO: caution: should start at 0.
+        iaa.Crop(percent=(0.0, 0.5)),
 
         # Rotates all images by 90 or 270 degrees.
         # Resizes all images afterwards to keep the size that they had before augmentation.
         # This may cause the images to look distorted.
         iaa.Sometimes(0.5, iaa.Rot90((1, 3))),
 
-        # Small gaussian blur with random sigma between 0 and 0.5.
+        # Small gaussian blur with random sigma between 0 and 0.3.
         # But we only blur about 50% of all images.
         iaa.Sometimes(0.5,
                       iaa.GaussianBlur(sigma=(0, 0.3))
                       ),
 
         # Strengthen or weaken the contrast in each image.
-        iaa.ContrastNormalization((0.75, 1.5)),
+        iaa.ContrastNormalization((0.85, 1.5)),
 
         # Add gaussian noise.
         # For 50% of all images, we sample the noise once per pixel.
@@ -133,7 +134,7 @@ def aug(images_or_image):
 
     # images_aug = [seq.augment_image(images_or_image) for _ in range(8)]
 
-    images_aug = seq.augment_images(images_or_image)
+    images_aug = seq.augment_images(images)
     # images_aug = seq.augment_image(images_or_image)
 
     # print("Augmented batch:")
