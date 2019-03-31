@@ -54,8 +54,7 @@ def aug(images):
         iaa.Flipud(0.2),  # vertically flip 20% of all images
 
         # crop some of the images by 0-50% of their height/width
-        # TODO: caution: should start at 0.
-        iaa.Crop(percent=(0.0, 0.5)),
+        iaa.Crop(percent=(0, 0.5)),
 
         # Rotates all images by 90 or 270 degrees.
         # Resizes all images afterwards to keep the size that they had before augmentation.
@@ -64,9 +63,7 @@ def aug(images):
 
         # Small gaussian blur with random sigma between 0 and 0.3.
         # But we only blur about 50% of all images.
-        iaa.Sometimes(0.5,
-                      iaa.GaussianBlur(sigma=(0, 0.3))
-                      ),
+        iaa.Sometimes(0.5, iaa.GaussianBlur(sigma=(0, 0.3))),
 
         # Strengthen or weaken the contrast in each image.
         iaa.ContrastNormalization((0.85, 1.5)),
