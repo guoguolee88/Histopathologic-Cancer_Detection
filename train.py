@@ -41,7 +41,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0008,
+flags.DEFINE_float('base_learning_rate', .0007,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-5,
                    'The rate to decay the base learning rate.')
@@ -104,15 +104,15 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 192, 'batch size')
+flags.DEFINE_integer('batch_size', 256, 'batch size')
 flags.DEFINE_integer('val_batch_size', 64, 'validation batch size')
-flags.DEFINE_integer('height', 128, 'height')
-flags.DEFINE_integer('width', 128, 'width')
+flags.DEFINE_integer('height', 96, 'height')
+flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # Test Time Augmentation
 flags.DEFINE_integer('num_tta', 8, 'Number of Test Time Augmentation')
-flags.DEFINE_integer('verification_cycle', 5, 'Number of verification cycle')
+flags.DEFINE_integer('verification_cycle', 10, 'Number of verification cycle')
 
 
 # temporary constant
@@ -139,11 +139,6 @@ def main(unused_argv):
         keep_prob = tf.placeholder(tf.float32, [], name='keep_prob')
         # learning_rate = tf.placeholder(tf.float32, [])
 
-        # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
-        #     logits, end_points = \
-        #         resnet_v2.resnet_v2_50(X,
-        #                                num_classes=num_classes,
-        #                                is_training=is_training)
         logits, end_points = model.hcd_model(X,
                                              num_classes=num_classes,
                                              is_training=is_training,

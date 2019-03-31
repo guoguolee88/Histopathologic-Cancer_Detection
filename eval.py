@@ -35,7 +35,7 @@ def main(_):
 
     # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
     #     logits, _ = \
-    #         resnet_v2.resnet_v2_101(X,
+    #         resnet_v2.resnet_v2_50(X,
     #                                num_classes=num_classes,
     #                                is_training=False)
     logits, _ = model.hcd_model(X,
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_architecture',
         type=str,
-        default='resnet_v2_101',
+        default='resnet_v2_50',
         help='What model architecture to use')
     parser.add_argument(
         '--height',
@@ -201,12 +201,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=192,
+        default=256,
         help='How many items to predict with at once')
     parser.add_argument(
         '--num_tta',    # Test Time Augmentation
         type=int,
-        default=5,
+        default=7,
         help='Number of Test Time Augmentation', )
     parser.add_argument(
         '--result_dir',
