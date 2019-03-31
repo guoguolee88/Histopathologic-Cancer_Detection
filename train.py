@@ -41,7 +41,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0005,
+flags.DEFINE_float('base_learning_rate', .0007,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-4,
                    'The rate to decay the base learning rate.')
@@ -104,15 +104,15 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 256, 'batch size')
-flags.DEFINE_integer('val_batch_size', 128, 'validation batch size')
-flags.DEFINE_integer('height', 96, 'height')
-flags.DEFINE_integer('width', 96, 'width')
+flags.DEFINE_integer('batch_size', 96, 'batch size')
+flags.DEFINE_integer('val_batch_size', 48, 'validation batch size')
+flags.DEFINE_integer('height', 196, 'height')
+flags.DEFINE_integer('width', 196, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # Test Time Augmentation
-flags.DEFINE_integer('num_tta', 10, 'Number of Test Time Augmentation')
-flags.DEFINE_integer('verification_cycle', 7, 'Number of verification cycle')
+flags.DEFINE_integer('num_tta', 6, 'Number of Test Time Augmentation')
+flags.DEFINE_integer('verification_cycle', 6, 'Number of verification cycle')
 
 
 # temporary constant

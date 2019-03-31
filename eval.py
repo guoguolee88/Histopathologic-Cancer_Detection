@@ -33,11 +33,6 @@ def main(_):
 
     X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
 
-    # with slim.arg_scope(resnet_v2.resnet_arg_scope()):
-    #     logits, _ = \
-    #         resnet_v2.resnet_v2_50(X,
-    #                                num_classes=num_classes,
-    #                                is_training=False)
     logits, _ = model.hcd_model(X,
                                 num_classes=num_classes,
                                 is_training=False,
@@ -186,12 +181,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--height',
         type=int,
-        default=96,
+        default=196,
         help='how do you want image resize height.')
     parser.add_argument(
         '--width',
         type=int,
-        default=96,
+        default=196,
         help='how do you want image resize width.')
     parser.add_argument(
         '--labels',
@@ -201,12 +196,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=256,
+        default=48,
         help='How many items to predict with at once')
     parser.add_argument(
         '--num_tta',    # Test Time Augmentation
         type=int,
-        default=7,
+        default=10,
         help='Number of Test Time Augmentation', )
     parser.add_argument(
         '--result_dir',
