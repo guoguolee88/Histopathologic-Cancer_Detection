@@ -60,12 +60,6 @@ def hcd_model(inputs,
                                normalizer_params=batch_norm_params,
                                scope='fc2')
     net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
-    # net = slim.fully_connected(net,
-    #                            512,
-    #                            normalizer_fn=slim.batch_norm,
-    #                            normalizer_params=batch_norm_params,
-    #                            scope='fc')
-    # net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
     logits = slim.fully_connected(net,
                                   num_classes,
                                   activation_fn=None,
