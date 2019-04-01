@@ -15,7 +15,6 @@ import csv
 import eval_data
 import model
 from utils import aug_utils
-from slim.nets import resnet_v2
 
 slim = tf.contrib.slim
 
@@ -38,9 +37,9 @@ def main(_):
                                 is_training=False,
                                 keep_prob=1.0)
 
-    # predicted_labels = tf.argmax(logits, 1, name='prediction')
-    prediction = tf.nn.softmax(logits)
-    predicted_labels = tf.argmax(prediction, 1)
+    predicted_labels = tf.argmax(logits, axis=1, name='prediction')
+    # prediction = tf.nn.softmax(logits)
+    # predicted_labels = tf.argmax(prediction, 1)
 
     ###############
     # Prepare data
@@ -120,15 +119,18 @@ def main(_):
                 #     cv2.waitKey(100)
                 #     cv2.destroyAllWindows()
 
+                # random augmentation for TTA
                 augmented_batch_xs = aug_utils.aug(batch_xs)
+
                 pred = sess.run(predicted_labels, feed_dict={X: augmented_batch_xs})
+
                 batch_pred.extend(pred)
                 batch_filename.extend(filename)
 
             predictions.append(batch_pred)
 
-        pred = np.mean(predictions, axis=0)
-        pred1 = np.ceil(pred)
+        pred = np.mean(predictions, axis=0) # [0:57458]
+        pred1 = np.ceil(pred)   # TODO: TTA 계산하는 법 리서치 필요.
 
         size = len(batch_filename)
         for n in range(size):
