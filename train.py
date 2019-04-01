@@ -2,21 +2,17 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
+
+import numpy as np
 import tensorflow as tf
 
-import os
-import cv2
-import numpy as np
-
-from matplotlib import pyplot as plt
-
-from slim.nets import resnet_v2
-# from slim.nets import inception_v4
-
 import data
-import val_data
 import model
+import val_data
 from utils import train_utils, aug_utils
+
+# from slim.nets import inception_v4
 
 slim = tf.contrib.slim
 
@@ -104,21 +100,21 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 120,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 96, 'batch size')
-flags.DEFINE_integer('val_batch_size', 48, 'validation batch size')
-flags.DEFINE_integer('height', 196, 'height')
-flags.DEFINE_integer('width', 196, 'width')
+flags.DEFINE_integer('batch_size', 256, 'batch size')
+flags.DEFINE_integer('val_batch_size', 256, 'validation batch size')
+flags.DEFINE_integer('height', 96, 'height')
+flags.DEFINE_integer('width', 96, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
 # Test Time Augmentation
-flags.DEFINE_integer('num_tta', 6, 'Number of Test Time Augmentation')
-flags.DEFINE_integer('verification_cycle', 6, 'Number of verification cycle')
+flags.DEFINE_integer('num_tta', 3, 'Number of Test Time Augmentation')
+flags.DEFINE_integer('verification_cycle', 3, 'Number of verification cycle')
 
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
-PCAM_TRAIN_DATA_SIZE = 172355
-PCAM_VALIDATE_DATA_SIZE = 47670
+PCAM_TRAIN_DATA_SIZE = 178027
+PCAM_VALIDATE_DATA_SIZE = 41998
 
 
 def main(unused_argv):

@@ -24,7 +24,7 @@ def aug(images):
         # Apply affine transformations to each image.
         # Scale/zoom them, translate/move them, rotate them and shear them.
         iaa.Affine(
-            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+            scale={"x": (0.7, 1.3), "y": (0.7, 1.3)},
             translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
             # rotate=(-25, 25),
             shear=(-8, 8)

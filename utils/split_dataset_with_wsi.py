@@ -23,7 +23,7 @@ flags.DEFINE_string('target_path',
                     'Path to label')
 
 flags.DEFINE_string('original_dataset',
-                    '/home/ace19/dl_data/histopathologic_cancer_detection_ori/original_train',
+                    '/home/ace19/dl_data/histopathologic_cancer_detection_ori/train',
                     'Path to original dataset')
 
 DATASET_TRAIN = 'train'
