@@ -16,10 +16,10 @@ def aug(images):
         # crop some of the images by 0-50% of their height/width
         iaa.Crop(percent=(0, 0.5)),
 
-        # Rotates all images by 90 or 270 degrees.
+        # Rotates all images by 90, 180 or 270 degrees.
         # Resizes all images afterwards to keep the size that they had before augmentation.
         # This may cause the images to look distorted.
-        iaa.Sometimes(0.7, iaa.Rot90((1, 3))),
+        iaa.Rot90((1, 3)),
 
         # Apply affine transformations to each image.
         # Scale/zoom them, translate/move them, rotate them and shear them.
