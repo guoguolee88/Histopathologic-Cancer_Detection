@@ -37,7 +37,7 @@ def main(_):
                                 is_training=False,
                                 keep_prob=1.0)
 
-    predicted_labels = tf.argmax(logits, axis=1, name='prediction')
+    # predicted_labels = tf.argmax(logits, axis=1, name='prediction')
     # prediction = tf.nn.softmax(logits)
     # predicted_labels = tf.argmax(prediction, 1)
 
@@ -122,18 +122,15 @@ def main(_):
                 # random augmentation for TTA
                 augmented_batch_xs = aug_utils.aug(batch_xs)
 
-                pred = sess.run(predicted_labels, feed_dict={X: augmented_batch_xs})
+                pred_logits = sess.run(logits, feed_dict={X: augmented_batch_xs})
 
-                batch_pred.extend(pred)
+                batch_pred.extend(pred_logits)
                 batch_filename.extend(filename)
 
             predictions.append(batch_pred)
 
-        pred = np.mean(predictions, axis=0) # [0:57458]
-        # TODO: TTA 계산하는 법 리서치 필요.
-        # log_preds,y = learn.TTA()
-        # probs = np.mean(np.exp(log_preds),0)
-        pred1 = np.ceil(pred)   # ??
+        pred = np.mean(predictions, axis=0)
+        pred1 = np.argmax(pred, axis=-1)
 
         size = len(batch_filename)
         for n in range(size):
@@ -186,12 +183,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--height',
         type=int,
-        default=96,
+        default=196,
         help='how do you want image resize height.')
     parser.add_argument(
         '--width',
         type=int,
-        default=96,
+        default=196,
         help='how do you want image resize width.')
     parser.add_argument(
         '--labels',
@@ -201,12 +198,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=256,
+        default=96,
         help='How many items to predict with at once')
     parser.add_argument(
         '--num_tta',    # Test Time Augmentation
         type=int,
-        default=3,
+        default=10,
         help='Number of Test Time Augmentation', )
     parser.add_argument(
         '--result_dir',
