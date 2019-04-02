@@ -38,9 +38,9 @@ def hcd_model(inputs,
                                     scope='resnet_v2_50')
 
     # out1 = GlobalMaxPooling2D()(x)
-    net1 = tf.reduce_max(net, [1, 2], name='GlobalMaxPooling2D')
+    net1 = tf.reduce_max(net, axis=[1, 2], keep_dims=True, name='GlobalMaxPooling2D')
     # out2 = GlobalAveragePooling2D()(x)
-    net2 = tf.reduce_mean(net, [1, 2], name='GlobalAveragePooling2D')
+    net2 = tf.reduce_mean(net, axis=[1, 2], keep_dims=True, name='GlobalAveragePooling2D')
     # out3 = Flatten()(x)
     # net3 = slim.flatten(net)
     # out = Concatenate(axis=-1)([out1, out2, out3])
@@ -64,5 +64,7 @@ def hcd_model(inputs,
                                   num_classes,
                                   activation_fn=None,
                                   scope='logits')
+
+    logits = tf.squeeze(logits, [1, 2], name='SpatialSqueeze')
 
     return logits, end_points
