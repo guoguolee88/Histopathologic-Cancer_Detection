@@ -130,7 +130,10 @@ def main(_):
             predictions.append(batch_pred)
 
         pred = np.mean(predictions, axis=0) # [0:57458]
-        pred1 = np.ceil(pred)   # TODO: TTA 계산하는 법 리서치 필요.
+        # TODO: TTA 계산하는 법 리서치 필요.
+        # log_preds,y = learn.TTA()
+        # probs = np.mean(np.exp(log_preds),0)
+        pred1 = np.ceil(pred)   # ??
 
         size = len(batch_filename)
         for n in range(size):
