@@ -45,6 +45,8 @@ def hcd_model(inputs,
     # net3 = slim.flatten(net)
     # out = Concatenate(axis=-1)([out1, out2, out3])
     net = tf.concat([net1, net2], axis=-1)
+    net = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
+
     # out = Dropout(0.5)(out)
     net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
     # out = Dense(1, activation="sigmoid", name="3_")(out)
@@ -64,7 +66,5 @@ def hcd_model(inputs,
                                   num_classes,
                                   activation_fn=None,
                                   scope='logits')
-
-    logits = tf.squeeze(logits, [1, 2], name='SpatialSqueeze')
 
     return logits, end_points
