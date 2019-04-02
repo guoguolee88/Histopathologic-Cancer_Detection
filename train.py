@@ -327,7 +327,7 @@ def main(unused_argv):
                                      X: augmented_batch_xs,
                                      ground_truth: train_batch_ys,
                                      is_training: True,
-                                     keep_prob: 0.5
+                                     keep_prob: 0.8
                                  })
                     train_writer.add_summary(train_summary, num_epoch)
                     train_writer.add_summary(grad_vals, num_epoch)
