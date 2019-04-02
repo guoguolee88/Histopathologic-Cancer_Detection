@@ -24,7 +24,7 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
 ## TODO 
 - ensemble module (with 5 or 10 models trained on different subsets).
   - ex) ensemble of 5 se_resnet50 models.
-- SE net
+- Apply SENet
 - Save model every time AUROC is increased. By the end of the training save the best model.
   AUC = AUROC (the Area Under a ROC Curve)
 - Apply ReduceLROnPlateau
