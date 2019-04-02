@@ -23,6 +23,7 @@ def hcd_model(inputs,
               num_classes,
               is_training=True,
               keep_prob=0.8,
+              attention_module=None,
               scope='HCD_model'):
     '''
     :param inputs: N x H x W x C tensor
@@ -35,6 +36,7 @@ def hcd_model(inputs,
             resnet_v2.resnet_v2_50(inputs,
                                     num_classes=num_classes,
                                     is_training=is_training,
+                                    attention_module=attention_module,
                                     scope='resnet_v2_50')
 
     # out1 = GlobalMaxPooling2D()(x)

@@ -32,10 +32,12 @@ def main(_):
 
     X = tf.placeholder(tf.float32, [None, FLAGS.height, FLAGS.width, 3])
 
+    # apply SENet
     logits, _ = model.hcd_model(X,
                                 num_classes=num_classes,
                                 is_training=False,
-                                keep_prob=1.0)
+                                keep_prob=1.0,
+                                attention_module='se_block')
 
     # predicted_labels = tf.argmax(logits, axis=1, name='prediction')
     # prediction = tf.nn.softmax(logits)

@@ -135,10 +135,12 @@ def main(unused_argv):
         keep_prob = tf.placeholder(tf.float32, [], name='keep_prob')
         # learning_rate = tf.placeholder(tf.float32, [])
 
+        # apply SENet
         logits, end_points = model.hcd_model(X,
                                              num_classes=num_classes,
                                              is_training=is_training,
-                                             keep_prob=keep_prob)
+                                             keep_prob=keep_prob,
+                                             attention_module='se_block')
 
 
         # Print name and shape of each tensor.
