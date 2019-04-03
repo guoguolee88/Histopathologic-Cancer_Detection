@@ -13,7 +13,7 @@ def aug(images):
         # iaa.Fliplr(0.5), # horizontally flip 50% of the images
         # iaa.Flipud(0.2),  # vertically flip 20% of all images
 
-        # crop some of the images by 0-50% of their height/width
+        # crop some of the images by 0-30% of their height/width
         iaa.Crop(percent=(0, 0.3)),
 
         # Rotates all images by 90, 180 or 270 degrees.
