@@ -70,6 +70,7 @@ def aug(images):
         # #    random_order=True
         # # ),
 
+        # Normalize
         iaa.Multiply(mul=(1. / 255), per_channel=True)
 
     ], random_order=False)  # apply augmenters in random order
