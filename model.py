@@ -49,6 +49,8 @@ def hcd_model(inputs,
     net = tf.concat([net1, net2], axis=-1)
     net = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
 
+    batch_norm_params['is_training'] = is_training
+
     # out = Dropout(0.5)(out)
     net = slim.dropout(net, keep_prob=keep_prob, is_training=is_training)
     # out = Dense(1, activation="sigmoid", name="3_")(out)
