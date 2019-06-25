@@ -19,10 +19,10 @@ Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph
   - WSI (Whole slide imaging)
 - Random augmentation from imgaug package: flips, rotations, crops, saturation
 - Using tfrecord.
-- Val/Test TTA
 - Applied SENet (from https://github.com/kobiso/SENet-tensorflow-slim)
 
 ## TODO 
+- Val/Test TTA
 - ensemble module (with 5 or 10 models trained on different subsets).
   - ex) ensemble of 5 se_resnet50 models.
 - Save model every time AUROC is increased. By the end of the training save the best model.
