@@ -92,6 +92,7 @@ def dict_to_tf_example(image_name,
         'image/height': dataset_util.int64_feature(height),
         'image/width': dataset_util.int64_feature(width),
         'image/filename': dataset_util.bytes_feature(image_name.encode('utf8')),
+        'image/fullpath': dataset_util.bytes_feature(full_path.encode('utf8')),
         'image/source_id': dataset_util.bytes_feature(image_name.encode('utf8')),
         'image/key/sha256': dataset_util.bytes_feature(key.encode('utf8')),
         'image/encoded': dataset_util.bytes_feature(encoded),
@@ -116,8 +117,7 @@ def main(_):
 
     tf.logging.info('Reading from PCam dataset.')
     dataset_path = os.path.join(FLAGS.dataset_dir, VALIDATE)
-    filenames = sorted(os.listdir(dataset_path))
-    random.seed(RANDOM_SEED)
+    filenames = os.listdir(dataset_path)
     random.shuffle(filenames)
 
     for idx, image in enumerate(filenames):
