@@ -112,6 +112,8 @@ flags.DEFINE_string('labels', '0,1', 'Labels to use')
 PCAM_TRAIN_DATA_SIZE = 178027
 PCAM_VALIDATE_DATA_SIZE = 41998
 
+TEN_CROP = 10
+
 
 def main(unused_argv):
     tf.logging.set_verbosity(tf.logging.INFO)
@@ -138,6 +140,9 @@ def main(unused_argv):
                                              keep_prob=keep_prob,
                                              attention_module='se_block')
 
+        tf.cond(is_training,
+                lambda: tf.identity(logits),
+                lambda: tf.reduce_mean(tf.reshape(logits, [FLAGS.val_batch_size, TEN_CROP, -1]), axis=1))
 
         # Print name and shape of each tensor.
         tf.logging.info("++++++++++++++++++++++++++++++++++")
@@ -346,13 +351,15 @@ def main(unused_argv):
                 sess.run(val_iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames})
                 for step in range(val_batches):
                     validation_batch_xs, validation_batch_ys = sess.run(val_next_batch)
-                    # random augmentation
-                    augmented_val_batch_xs = aug_utils.aug(validation_batch_xs)
+                    # TTA
+                    batch_size, n_crops, c, h, w = validation_batch_xs.shape
+                    # fuse batch size and ncrops
+                    tencrop_val_batch_xs = np.reshape(validation_batch_xs, (-1, c, h, w))
 
                     val_summary, val_accuracy, conf_matrix = sess.run(
                         [summary_op, accuracy, confusion_matrix],
                         feed_dict={
-                            X: augmented_val_batch_xs,
+                            X: tencrop_val_batch_xs,
                             ground_truth: validation_batch_ys,
                             is_training: False,
                             keep_prob: 1.0
