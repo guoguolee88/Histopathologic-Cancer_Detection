@@ -106,10 +106,6 @@ flags.DEFINE_integer('height', 196, 'height')
 flags.DEFINE_integer('width', 196, 'width')
 flags.DEFINE_string('labels', '0,1', 'Labels to use')
 
-# Test Time Augmentation
-flags.DEFINE_integer('num_tta', 5, 'Number of Test Time Augmentation')
-flags.DEFINE_integer('verification_cycle', 5, 'Number of verification cycle')
-
 
 # temporary constant
 # PCAM_TRAIN_DATA_SIZE = 220025
@@ -336,10 +332,6 @@ def main(unused_argv):
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
                                     (num_epoch, step, lr, train_accuracy * 100, train_loss))
 
-                # validate per every verification_cycle flag
-                if num_epoch % FLAGS.verification_cycle != 0:
-                    continue
-
                 ###################################################
                 # Validate the model on the validation set
                 ###################################################
@@ -347,55 +339,38 @@ def main(unused_argv):
                 tf.logging.info(' Start validation ')
                 tf.logging.info('--------------------------')
 
-                # Test Time Augmentation (TTA)
-                predictions = []
-                for i in range(FLAGS.num_tta):
-                    # Reinitialize iterator with the validation dataset
-                    sess.run(val_iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames})
-                    total_val_accuracy = 0
-                    validation_count = 0
-                    total_conf_matrix = None
+                total_val_accuracy = 0
+                validation_count = 0
+                total_conf_matrix = None
+                # Reinitialize iterator with the validation dataset
+                sess.run(val_iterator.initializer, feed_dict={tfrecord_filenames: validate_record_filenames})
+                for step in range(val_batches):
+                    validation_batch_xs, validation_batch_ys = sess.run(val_next_batch)
+                    # random augmentation
+                    augmented_val_batch_xs = aug_utils.aug(validation_batch_xs)
 
-                    batch_pred = []
-                    batch_y = []
-                    for step in range(val_batches):
-                        validation_batch_xs, validation_batch_ys = sess.run(val_next_batch)
-                        # random augmentation for TTA
-                        augmented_val_batch_xs = aug_utils.aug(validation_batch_xs)
+                    val_summary, val_accuracy, conf_matrix = sess.run(
+                        [summary_op, accuracy, confusion_matrix],
+                        feed_dict={
+                            X: augmented_val_batch_xs,
+                            ground_truth: validation_batch_ys,
+                            is_training: False,
+                            keep_prob: 1.0
+                        })
 
-                        val_summary, val_accuracy, val_logit, conf_matrix = sess.run(
-                            [summary_op, accuracy, logits, confusion_matrix],
-                            feed_dict={
-                                X: augmented_val_batch_xs,
-                                ground_truth: validation_batch_ys,
-                                is_training: False,
-                                keep_prob: 1.0
-                            })
+                    validation_writer.add_summary(val_summary, num_epoch)
 
-                        validation_writer.add_summary(val_summary, num_epoch)
+                    total_val_accuracy += val_accuracy
+                    validation_count += 1
+                    if total_conf_matrix is None:
+                        total_conf_matrix = conf_matrix
+                    else:
+                        total_conf_matrix += conf_matrix
 
-                        total_val_accuracy += val_accuracy
-                        validation_count += 1
-                        if total_conf_matrix is None:
-                            total_conf_matrix = conf_matrix
-                        else:
-                            total_conf_matrix += conf_matrix
-
-                        batch_pred.extend(val_logit)
-                        batch_y.extend(validation_batch_ys)
-
-                    total_val_accuracy /= validation_count
-                    tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
-                    tf.logging.info('Validation accuracy = %.1f%% (N=%d)' %
-                                    (total_val_accuracy * 100, PCAM_VALIDATE_DATA_SIZE))
-
-                    predictions.append(batch_pred)
-
-                pred = np.mean(predictions, axis=0)
-                tta_accuracy = np.mean(np.equal(batch_y, np.argmax(pred, axis=-1)))
-                # summaries.add(tf.summary.scalar('tta_accuracy', tta_accuracy))
-                tf.logging.info('Test Time Accuracy: %.5f' % tta_accuracy)
-                # validation_writer.add_summary(tta_accuracy, num_epoch)
+                total_val_accuracy /= validation_count
+                tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
+                tf.logging.info('Validation accuracy = %.1f%% (N=%d)' %
+                                (total_val_accuracy * 100, PCAM_VALIDATE_DATA_SIZE))
 
                 # Save the model checkpoint periodically.
                 if (num_epoch <= FLAGS.how_many_training_epochs-1):
