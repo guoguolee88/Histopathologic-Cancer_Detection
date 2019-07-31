@@ -140,9 +140,9 @@ def main(unused_argv):
                                              keep_prob=keep_prob,
                                              attention_module='se_block')
 
-        tf.cond(is_training,
-                lambda: tf.identity(logits),
-                lambda: tf.reduce_mean(tf.reshape(logits, [FLAGS.val_batch_size, TEN_CROP, -1]), axis=1))
+        logits = tf.cond(is_training,
+                         lambda: tf.identity(logits),
+                         lambda: tf.reduce_mean(tf.reshape(logits, [FLAGS.val_batch_size, TEN_CROP, -1]), axis=1))
 
         # Print name and shape of each tensor.
         tf.logging.info("++++++++++++++++++++++++++++++++++")
