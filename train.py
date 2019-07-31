@@ -7,7 +7,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import data
+import train_data
 import model
 import val_data
 from utils import train_utils, aug_utils
@@ -240,11 +240,11 @@ def main(unused_argv):
         ###############
         # training dateset
         tfrecord_filenames = tf.placeholder(tf.string, shape=[])
-        dataset = data.Dataset(tfrecord_filenames,
-                               FLAGS.batch_size,
-                               FLAGS.how_many_training_epochs,
-                               FLAGS.height,
-                               FLAGS.width)
+        dataset = train_data.Dataset(tfrecord_filenames,
+                                     FLAGS.batch_size,
+                                     FLAGS.how_many_training_epochs,
+                                     FLAGS.height,
+                                     FLAGS.width)
         iterator = dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
