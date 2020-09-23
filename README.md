@@ -1,5 +1,6 @@
 # Histopathologic-Cancer-Detection
-Kaggle Competition: Identify metastatic tissue in histopathologic scans of lymph node sections
+Kaggle Competition: https://www.kaggle.com/c/histopathologic-cancer-detection
+Identify metastatic tissue in histopathologic scans of lymph node sections
 
 ## Data
 - PatchCamelyon (PCam)
