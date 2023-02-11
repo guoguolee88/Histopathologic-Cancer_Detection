@@ -1,20 +1,21 @@
 # Histopathologic-Cancer-Detection
-Kaggle Competition: https://www.kaggle.com/c/histopathologic-cancer-detection
-- Identify metastatic tissue in histopathologic scans of lymph node sections
+The analysis is for a study of deep learning class. The purpose is to create an algorithm to identify Identify metastatic tissue in histopathologic scans of lymph node sections taken from larger digital pathology scans. The data for this analysis is a slightly modified version of the PatchCamelyon(PCam) benchmark dataset.
 
 ## Data
 - PatchCamelyon (PCam)
+Kaggle Competition: https://www.kaggle.com/c/histopathologic-cancer-detection
 
-## Quick Start
-- convert .tif to .png
-- split dataset into train, val
-- create tfrecord file
-- execute train.py
+## Data Visualization
+![image](https://user-images.githubusercontent.com/98787809/218280897-22f7661d-c851-490a-be95-a12ad019c840.png)
 
-## Evaluation
-- execute eval.py
 
-## Done
+## Baseline Model
+- 
+
+## Baseline Model tuning
+- 
+
+## Validation and Analysis
 - Data split applied
   - data class balancing
   - WSI (Whole slide imaging)
@@ -22,15 +23,6 @@ Kaggle Competition: https://www.kaggle.com/c/histopathologic-cancer-detection
 - Using tfrecord.
 - Applied SENet (from https://github.com/kobiso/SENet-tensorflow-slim)
 - Validation TTA - TenCrop
-
-## TODO 
-- ensemble module (with 5 or 10 models trained on different subsets).
-  - ex) ensemble of 5 se_resnet50 models.
-- Save model every time AUROC is increased. By the end of the training save the best model.
-  AUC = AUROC (the Area Under a ROC Curve)
-- Apply ReduceLROnPlateau
-    : learning rate to be reduced when training is not progressing.
-- Train the added layers for 1-2 epoch and then the whole network for another 3-4 ??
 
 ## References from
 - https://github.com/tensorflow/tensorflow/blob/r1.11/tensorflow/examples/how_tos/reading_data/fully_connected_reader.py
