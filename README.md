@@ -8,22 +8,6 @@ Kaggle Competition: https://www.kaggle.com/c/histopathologic-cancer-detection
 ## Data Visualization
 ![image](https://user-images.githubusercontent.com/98787809/218280897-22f7661d-c851-490a-be95-a12ad019c840.png)
 
-
-## Baseline Model
-- 
-
-## Baseline Model tuning
-- 
-
-## Validation and Analysis
-- Data split applied
-  - data class balancing
-  - WSI (Whole slide imaging)
-- Random augmentation from imgaug package: flips, rotations, crops, saturation
-- Using tfrecord.
-- Applied SENet (from https://github.com/kobiso/SENet-tensorflow-slim)
-- Validation TTA - TenCrop
-
 ## References from
 - https://github.com/tensorflow/tensorflow/blob/r1.11/tensorflow/examples/how_tos/reading_data/fully_connected_reader.py
 - https://www.kaggle.com/qitvision/a-complete-ml-pipeline-fast-ai
